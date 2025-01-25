@@ -1,0 +1,13 @@
+---
+- name: Deploy
+  hosts: proxmox_server
+
+  vars_files: [vars.yml]
+
+  vars:
+    assets_path: '{{ playbook_dir }}/assets'
+    files_path: '{{ playbook_dir }}/files'
+    tasks_path: '{{ playbook_dir }}/tasks'
+    templates_path: '{{ playbook_dir }}/templates'
+
+  tasks:
