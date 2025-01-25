@@ -1,0 +1,7 @@
+[proxmox_server]
+prxmox_server_1 ansible_host=192.168.1.10
+
+[proxmox_server:vars]
+ansible_port=2222
+ansible_user=user
+ansible_ssh_private_key_file=~/.ssh/srv_key.pem
