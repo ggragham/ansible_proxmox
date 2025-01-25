@@ -18,7 +18,8 @@
 .LSOverride
 
 # Icon must end with two \r
-Icon
+Icon
+
 
 # Thumbnails
 ._*
@@ -46,3 +47,11 @@ Temporary Items
 
 # Log files (if you are creating logs in debug mode, uncomment this)
 # *.log
+
+# Other
+assets/*
+!assets/README.md
+
+inventory.yml
+inventory.ini
+*vars.yml
