@@ -11,3 +11,6 @@
     templates_path: '{{ playbook_dir }}/templates'
 
   tasks:
+    - name: Base config
+      include_tasks: '{{ tasks_path }}/base.yml'
+      tags: base
