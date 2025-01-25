@@ -1,0 +1,16 @@
+---
+- name: Install fail2ban
+  apt:
+    name: fail2ban
+    state: latest
+    update_cache: true
+
+  become: true
+
+- name: Apply fail2ban config
+  template:
+    src: '{{ templates_path }}/fail2ban.conf.j2'
+    dest: /etc/fail2ban/jail.d/default.conf
+    mode: '0644'
+  notify: Restart fail2ban
+  become: true

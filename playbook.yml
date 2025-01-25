@@ -7,6 +7,7 @@
   vars:
     assets_path: '{{ playbook_dir }}/assets'
     files_path: '{{ playbook_dir }}/files'
+    handlers_path: '{{ playbook_dir }}/handlers'
     tasks_path: '{{ playbook_dir }}/tasks'
     templates_path: '{{ playbook_dir }}/templates'
 
@@ -18,3 +19,12 @@
     - name: Base config
       include_tasks: '{{ tasks_path }}/base.yml'
       tags: base
+
+    - name: Install fail2ban
+      include_tasks: '{{ tasks_path }}/fail2ban.yml'
+      tags: fail2ban
+
+  handlers:
+    - name: Restart fail2ban
+      include_tasks: '{{ handlers_path }}/fail2ban.yml'
+      tags: fail2ban
