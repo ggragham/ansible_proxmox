@@ -1,0 +1,81 @@
+---
+- name: Init config
+  hosts: all
+  gather_facts: false
+
+  vars_files: [vars.yml]
+
+  tasks:
+    - name: Install python for Ansible
+      raw: test -e /usr/bin/python3 || apt update && apt install -y python3-minimal
+      changed_when: false
+      become: true
+
+    - name: Install sudo
+      apt:
+        name: sudo
+        state: latest
+        update_cache: true
+
+    - name: Create the user
+      user:
+        name: '{{ USERNAME }}'
+        password: "{{ PASSWORD | password_hash('sha512') }}"
+        shell: /bin/bash
+        groups: sudo
+
+    - name: Ensure the .ssh directory exists
+      file:
+        path: /home/{{ USERNAME }}/.ssh
+        state: directory
+        owner: '{{ USERNAME }}'
+        group: '{{ USERNAME }}'
+        mode: '0700'
+
+    - name: Set ssh key on hosts
+      authorized_key:
+        user: '{{ USERNAME }}'
+        state: present
+        key: "{{ lookup('file', SSH_KEY_PATH) }}"
+
+    - block:
+        - name: Remove default values in sshd_config
+          replace:
+            path: /etc/ssh/sshd_config
+            regexp: ^\s*({{ item }}.*)
+            replace: '# \1'
+          with_items:
+            - Port
+            - PermitRootLogin
+            - MaxAuthTries
+            - MaxSessions
+            - PasswordAuthentication
+            - PermitEmptyPasswords
+            - X11Forwarding
+            - AuthorizedKeysFile
+
+        - name: Apply sshd config
+          template:
+            src: 01_ssh.j2
+            dest: /etc/ssh/sshd_config.d/01_ssh.conf
+            mode: '0600'
+          notify: Restart sshd
+
+        - name: Remove root password
+          user:
+            name: root
+            state: present
+            password_lock: true
+
+        - name: Set passwordless sudo
+          community.general.sudoers:
+            name: users
+            state: present
+            user: '{{ USERNAME }}'
+            commands: ALL
+
+  handlers:
+    - name: Restart sshd
+      service:
+        name: sshd
+        state: restarted
