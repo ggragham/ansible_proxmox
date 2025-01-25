@@ -11,6 +11,10 @@
     templates_path: '{{ playbook_dir }}/templates'
 
   tasks:
+    - name: Hardening
+      include_tasks: '{{ tasks_path }}/hardening.yml'
+      tags: hardening
+
     - name: Base config
       include_tasks: '{{ tasks_path }}/base.yml'
       tags: base

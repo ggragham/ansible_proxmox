@@ -1,0 +1,62 @@
+---
+- name: Update login.defs settings
+  block:
+    - name: Set home mode to 0700
+      lineinfile:
+        path: /etc/login.defs
+        regexp: ^#?HOME_MODE
+        line: HOME_MODE 0700
+        state: present
+        backrefs: true
+    - name: Set yescrypt cost factor to 11
+      lineinfile:
+        path: /etc/login.defs
+        regexp: ^#?YESCRYPT_COST_FACTOR
+        line: YESCRYPT_COST_FACTOR 11
+        state: present
+        backrefs: true
+  become: true
+
+- name: Set permissions for {{ USERNAME }}'s home directory
+  file:
+    path: /home/{{ USERNAME }}
+    state: directory
+    mode: 0750
+    owner: '{{ USERNAME }}'
+    group: '{{ USERNAME }}'
+  become: true
+
+- name: Blacklist unused modules
+  copy:
+    src: '{{ files_path }}/hardening_modules_blacklist.conf'
+    dest: /etc/modprobe.d/blacklist.conf
+    mode: 0640
+  become: true
+
+- name: Hardening kernel settings
+  copy:
+    src: '{{ files_path }}/hardening_kernel.conf'
+    dest: /etc/sysctl.d/hardening.conf
+    mode: 0640
+  become: true
+
+- name: Disable core dumps
+  block:
+    - name: Apply systemd coredump config
+      copy:
+        src: '{{ files_path }}/hardening_systemd_coredump.conf'
+        dest: /etc/systemd/coredump.conf
+        mode: 0640
+    - name: Ulimit coredump config
+      copy:
+        src: '{{ files_path }}/hardening_ulimit_coredump.conf'
+        dest: /etc/security/limits.d/99-disable-coredump.conf
+        mode: 0640
+  become: true
+
+- name: APT seccomp-bpf
+  copy:
+    src: '{{ files_path }}/hardening_apt_sandbox.conf'
+    dest: /etc/apt/apt.conf.d/40sandbox.conf
+    mode: 0640
+  become: true
