@@ -24,7 +24,15 @@
       include_tasks: '{{ tasks_path }}/fail2ban.yml'
       tags: fail2ban
 
+    - name: Install Chrony
+      include_tasks: '{{ tasks_path }}/sntp.yml'
+      tags: sntp
+
   handlers:
     - name: Restart fail2ban
       include_tasks: '{{ handlers_path }}/fail2ban.yml'
       tags: fail2ban
+
+    - name: Restart chronyd
+      include_tasks: '{{ handlers_path }}/sntp.yml'
+      tags: sntp
