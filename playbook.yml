@@ -32,6 +32,10 @@
       include_tasks: '{{ tasks_path }}/sntp.yml'
       tags: sntp
 
+    - name: Hide annoying Subscription Notice
+      include_tasks: '{{ tasks_path }}/sub_notice_patch.yml'
+      tags: sub_notice_patch
+
   handlers:
     - name: Restart sshd
       include_tasks: '{{ handlers_path }}/ssh.yml'
@@ -44,3 +48,7 @@
     - name: Restart chronyd
       include_tasks: '{{ handlers_path }}/sntp.yml'
       tags: sntp
+
+    - name: Restart pveproxy
+      include_tasks: '{{ handlers_path }}/sub_notice_patch.yml'
+      tags: sub_notice_patch

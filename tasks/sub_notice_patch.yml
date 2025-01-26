@@ -1,0 +1,31 @@
+---
+- name: Check if Subscription Notice patch is already applied
+  command: grep -q '// Ansible patch' /usr/share/javascript/proxmox-widget-toolkit/proxmoxlib.js
+  register: patch_check
+  failed_when: false
+  changed_when: false
+
+- block:
+    - name: Get current date and time for backup
+      command:
+        cmd: date +"%Y%m%d%H%M%S"
+      register: current_date
+      changed_when: false
+
+    - name: Backup proxmoxlib.js
+      copy:
+        src: /usr/share/javascript/proxmox-widget-toolkit/proxmoxlib.js
+        dest: /usr/share/javascript/proxmox-widget-toolkit/proxmoxlib.js.bak_{{ current_date.stdout }}
+        remote_src: true
+      become: true
+
+    - name: Hide annoying Subscription Notice
+      replace:
+        path: /usr/share/javascript/proxmox-widget-toolkit/proxmoxlib.js
+        regexp: (function\(orig_cmd\) \{)
+        replace: \1\n\t// Ansible patch\n\torig_cmd();\n\treturn;
+        backup: true
+      notify: Restart pveproxy
+      become: true
+
+  when: patch_check.rc != 0
