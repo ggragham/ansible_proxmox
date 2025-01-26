@@ -4,3 +4,4 @@
     name: pveproxy
     state: restarted
   become: true
+  tags: sub_notice_patch
