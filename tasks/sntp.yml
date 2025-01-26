@@ -1,15 +1,18 @@
 ---
-- name: Install chronyd
-  apt:
-    name: chrony
-    state: latest
-    update_cache: true
-  become: true
+- block:
+    - name: Install chronyd
+      apt:
+        name: chrony
+        state: latest
+        update_cache: true
+      become: true
 
-- name: Apply chrony config
-  copy:
-    src: '{{ files_path }}/sntp_chrony.conf'
-    dest: /etc/chrony.conf
-    mode: 0644
-  notify: Restart chronyd
-  become: true
+    - name: Apply chrony config
+      copy:
+        src: '{{ files_path }}/sntp_chrony.conf'
+        dest: /etc/chrony.conf
+        mode: 0644
+      notify: Restart chronyd
+      become: true
+
+  tags: sntp
