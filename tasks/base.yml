@@ -1,29 +1,32 @@
 ---
-- name: Uninstall garbage
-  apt:
-    name:
-      - nano
-      - vim-*
-    state: absent
-    purge: true
-    autoremove: true
-  become: true
+- block:
+    - name: Uninstall garbage
+      apt:
+        name:
+          - nano
+          - vim-*
+        state: absent
+        purge: true
+        autoremove: true
+      become: true
 
-- name: Update deb-based system
-  apt:
-    name: '*'
-    state: latest
-    update_cache: true
-  become: true
+    - name: Update deb-based system
+      apt:
+        name: '*'
+        state: latest
+        update_cache: true
+      become: true
 
-- name: Install necessary packages
-  apt:
-    name:
-      - bash-completion
-      - curl
-      - htop
-      - neovim
-      - tree
-    state: latest
-    update_cache: true
-  become: true
+    - name: Install necessary packages
+      apt:
+        name:
+          - bash-completion
+          - curl
+          - htop
+          - neovim
+          - tree
+        state: latest
+        update_cache: true
+      become: true
+
+  tags: base
