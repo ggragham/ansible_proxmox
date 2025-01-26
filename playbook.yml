@@ -12,6 +12,10 @@
     templates_path: '{{ playbook_dir }}/templates'
 
   tasks:
+    - name: SSH
+      include_tasks: '{{ tasks_path }}/ssh.yml'
+      tags: ssh
+
     - name: Hardening
       include_tasks: '{{ tasks_path }}/hardening.yml'
       tags: hardening
@@ -29,6 +33,10 @@
       tags: sntp
 
   handlers:
+    - name: Restart sshd
+      include_tasks: '{{ handlers_path }}/ssh.yml'
+      tags: ssh
+
     - name: Restart fail2ban
       include_tasks: '{{ handlers_path }}/fail2ban.yml'
       tags: fail2ban

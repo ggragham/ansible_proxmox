@@ -1,0 +1,24 @@
+---
+- name: Remove default values in sshd_config
+  replace:
+    path: /etc/ssh/sshd_config
+    regexp: ^\s*({{ item }}.*)
+    replace: '# \1'
+  with_items:
+    - Port
+    - PermitRootLogin
+    - MaxAuthTries
+    - MaxSessions
+    - PasswordAuthentication
+    - PermitEmptyPasswords
+    - X11Forwarding
+    - AuthorizedKeysFile
+  become: true
+
+- name: Apply sshd config
+  template:
+    src: '{{ templates_path }}/ssh.conf.j2'
+    dest: /etc/ssh/sshd_config.d/01_ssh.conf
+    mode: '0600'
+  notify: Restart sshd
+  become: true
