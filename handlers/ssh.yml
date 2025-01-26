@@ -4,3 +4,4 @@
     name: sshd
     state: restarted
   become: true
+  tags: ssh
