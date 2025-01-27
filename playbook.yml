@@ -16,9 +16,9 @@
       include_tasks: '{{ tasks_path }}/ssh.yml'
       tags: ssh
 
-    - name: Hardening
-      include_tasks: '{{ tasks_path }}/hardening.yml'
-      tags: hardening
+    - name: System Hardening
+      include_tasks: '{{ tasks_path }}/system_hardening.yml'
+      tags: system_hardening
 
     - name: Base config
       include_tasks: '{{ tasks_path }}/base.yml'
