@@ -24,21 +24,21 @@
       include_tasks: '{{ tasks_path }}/base.yml'
       tags: base
 
-    - name: Install fail2ban
+    - name: Install and config fail2ban
       include_tasks: '{{ tasks_path }}/fail2ban.yml'
       tags: fail2ban
 
-    - name: Install Chrony
+    - name: Install and config Chrony
       include_tasks: '{{ tasks_path }}/sntp.yml'
       tags: sntp
-
-    - name: Hide annoying Subscription Notice
-      include_tasks: '{{ tasks_path }}/sub_notice_patch.yml'
-      tags: sub_notice_patch
 
     - name: Mound external storages
       include_tasks: '{{ tasks_path }}/external_disks.yml'
       tags: storage
+
+    - name: Hide annoying Subscription Notice
+      include_tasks: '{{ tasks_path }}/sub_notice_patch.yml'
+      tags: sub_notice_patch
 
   handlers:
     - name: Restart sshd
