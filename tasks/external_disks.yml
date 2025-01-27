@@ -47,24 +47,15 @@
         - DISK_FSTYPE == 'ext4'
 
     - name: Mount external disk with btrfs
-      block:
-        - name: Mount BTRFS disk
-          mount:
-            path: '{{ DISK_PATH }}'
-            src: LABEL={{ DISK_LABEL }}
-            fstype: btrfs
-            opts: x-systemd.requires=cryptsetup.target
-            state: mounted
-        - name: Mount subvolumes
-          mount:
-            path: '{{ item.path }}'
-            src: LABEL={{ DISK_LABEL }}
-            fstype: btrfs
-            opts: subvol={{ item.subvol }},compress={{ item.compression }},x-systemd.requires=cryptsetup.target
-            state: mounted
-          loop: '{{ DISK_SUBVOLS }}'
-          loop_control:
-            loop_var: item
+      mount:
+        path: '{{ item.path }}'
+        src: LABEL={{ DISK_LABEL }}
+        fstype: btrfs
+        opts: subvol={{ item.subvol }},compress={{ item.compression }},x-systemd.requires=cryptsetup.target
+        state: mounted
+      loop: '{{ DISK_SUBVOLS }}'
+      loop_control:
+        loop_var: item
       when:
         - disk_exists.rc == 0
         - DISK_FSTYPE == 'btrfs'

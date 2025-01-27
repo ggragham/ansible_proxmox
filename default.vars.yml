@@ -19,10 +19,15 @@ DISK_PATH: /mnt/{{ DISK_LABEL }}  # Disk mount path.
 DISK_SUBVOLS_PATH: /mnt/btrfs_subvols  # BTRFS subvolumes mount path.
 
 DISK_SUBVOLS:  # List of BTRFS subvolumes.
-  - name: data_storage
-    subvol: '@data'  # Subvolume name in filesystem.
-    path: '{{ DISK_SUBVOLS_PATH }}/data'  # Subvolume mount point.
+  - name: pve_storage
+    subvol: '@pve_storage'  # Subvolume name in filesystem.
+    path: '{{ DISK_SUBVOLS_PATH }}/pve_storage'  # Subvolume mount point.
     compression: zstd:1  # Subvolume compression.
+
+  - name: data_storage
+    subvol: '@data'
+    path: '{{ DISK_SUBVOLS_PATH }}/data'
+    compression: zstd:1
 
   - name: media_storage
     subvol: '@media'
