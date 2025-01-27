@@ -1,0 +1,12 @@
+---
+- name: Proxmox VE hardening
+  block:
+    - name: Apply pveproxy config
+      template:
+        src: '{{ templates_path }}/pve_hardening_pveproxy.j2'
+        dest: /etc/default/pveproxy
+        mode: '0644'
+      notify: Restart pveproxy
+      become: true
+
+  tags: pve_hardening

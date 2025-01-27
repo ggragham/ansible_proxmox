@@ -40,6 +40,10 @@
       include_tasks: '{{ tasks_path }}/sub_notice_patch.yml'
       tags: sub_notice_patch
 
+    - name: Proxmox Hardening
+      include_tasks: '{{ tasks_path }}/pve_hardening.yml'
+      tags: pve_hardening
+
   handlers:
     - name: Restart sshd
       include_tasks: '{{ handlers_path }}/ssh.yml'
@@ -55,4 +59,4 @@
 
     - name: Restart pveproxy
       include_tasks: '{{ handlers_path }}/pveproxy.yml'
-      tags: sub_notice_patch
+      tags: [sub_notice_patch, pve_hardening]
