@@ -1,0 +1,74 @@
+---
+- name: Configure external storages
+  block:
+    - name: Make dirs for mountpoint
+      file:
+        path: '{{ mount_point_path }}'
+        state: directory
+        recurse: true
+        mode: 0755
+        owner: root
+      loop:
+        - '{{ DISK_PATH }}'
+        - '{{ DISK_SUBVOLS_PATH }}'
+      loop_control:
+        loop_var: mount_point_path
+
+    - name: Check disk with appropriate label exists
+      shell: blkid -o value -s LABEL | grep -q '{{ DISK_ENCRYPTED|bool | ternary(DISK_ENCRYPTED_LABEL, DISK_LABEL) }}'
+      register: disk_exists
+      ignore_errors: true
+
+    - name: Encrypted disk
+      block:
+        - name: Copy keyfile
+          copy:
+            src: '{{ DISK_KEYFILE_PATH }}'
+            dest: /etc/{{ DISK_KEYFILE }}
+            mode: 0400
+        - name: Add disk to crypttab
+          lineinfile:
+            path: /etc/crypttab
+            line: '{{ DISK_ENCRYPTED_LABEL }} LABEL={{ DISK_ENCRYPTED_LABEL }} /etc/{{ DISK_KEYFILE }} luks'
+            state: present
+        - name: Decrypt disks in cryptab
+          command: cryptdisks_start '{{ DISK_ENCRYPTED_LABEL }}'
+      when: DISK_ENCRYPTED|bool and disk_exists.rc == 0
+
+    - name: Mount external disk with ext4
+      mount:
+        path: '{{ DISK_PATH }}'
+        src: LABEL={{ DISK_LABEL }}
+        fstype: ext4
+        opts: defaults
+        state: mounted
+      when:
+        - disk_exists.rc == 0
+        - DISK_FSTYPE == 'ext4'
+
+    - name: Mount external disk with btrfs
+      block:
+        - name: Mount BTRFS disk
+          mount:
+            path: '{{ DISK_PATH }}'
+            src: LABEL={{ DISK_LABEL }}
+            fstype: btrfs
+            opts: x-systemd.requires=cryptsetup.target
+            state: mounted
+        - name: Mount subvolumes
+          mount:
+            path: '{{ item.path }}'
+            src: LABEL={{ DISK_LABEL }}
+            fstype: btrfs
+            opts: subvol={{ item.subvol }},compress={{ item.compression }},x-systemd.requires=cryptsetup.target
+            state: mounted
+          loop: '{{ DISK_SUBVOLS }}'
+          loop_control:
+            loop_var: item
+      when:
+        - disk_exists.rc == 0
+        - DISK_FSTYPE == 'btrfs'
+
+  when: EXT_DISK_ENABLED|bool
+  become: true
+  tags: storage

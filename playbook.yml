@@ -36,6 +36,10 @@
       include_tasks: '{{ tasks_path }}/sub_notice_patch.yml'
       tags: sub_notice_patch
 
+    - name: Mound external storages
+      include_tasks: '{{ tasks_path }}/external_disks.yml'
+      tags: storage
+
   handlers:
     - name: Restart sshd
       include_tasks: '{{ handlers_path }}/ssh.yml'

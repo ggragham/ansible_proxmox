@@ -6,3 +6,35 @@ SSH_PORT: 2222
 FAIL2BAN_BANTIME: 5m  # Duration for which IPs are banned.
 FAIL2BAN_FINDTIME: 3m  # Time window to consider failed login attempts.
 FAIL2BAN_MAXRETRY: 5  # Number of allowed failed login attempts before banning IP.
+
+# External Disk
+EXT_DISK_ENABLED: true  # Enables or disables external disk mounting.
+DISK_LABEL: disk  # External disk label.
+DISK_ENCRYPTED: false  # Disk encryption status.
+DISK_ENCRYPTED_LABEL: encrypted_disk  # Luks label.
+DISK_KEYFILE: keyfile.pem  # Encryption key file name.
+DISK_KEYFILE_PATH: '{{ assets_path }}/{{ DISK_KEYFILE }}'  # Path to encryption key file.
+DISK_FSTYPE: btrfs  # Disk filesystem type.
+DISK_PATH: /mnt/{{ DISK_LABEL }}  # Disk mount path.
+DISK_SUBVOLS_PATH: /mnt/btrfs_subvols  # BTRFS subvolumes mount path.
+
+DISK_SUBVOLS:  # List of BTRFS subvolumes.
+  - name: data_storage
+    subvol: '@data'  # Subvolume name in filesystem.
+    path: '{{ DISK_SUBVOLS_PATH }}/data'  # Subvolume mount point.
+    compression: zstd:1  # Subvolume compression.
+
+  - name: media_storage
+    subvol: '@media'
+    path: '{{ DISK_SUBVOLS_PATH }}/media'
+    compression: zstd:1
+
+  - name: cache_storage
+    subvol: '@cache'
+    path: '{{ DISK_SUBVOLS_PATH }}/cache'
+    compression: zstd:1
+
+  - name: backup_storage
+    subvol: '@backup'
+    path: '{{ DISK_SUBVOLS_PATH }}/backup'
+    compression: zstd:1
