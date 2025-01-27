@@ -54,5 +54,5 @@
       tags: sntp
 
     - name: Restart pveproxy
-      include_tasks: '{{ handlers_path }}/sub_notice_patch.yml'
+      include_tasks: '{{ handlers_path }}/pveproxy.yml'
       tags: sub_notice_patch
