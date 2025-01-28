@@ -59,7 +59,8 @@
         loop_var: disks
       when:
         - DISK_FSTYPE == 'ext4'
-        - disk_exists.results | selectattr('rc', 'eq', 0) | selectattr('disk_existence.name', 'eq', disks.name) | list | length > 0
+        - disk_exists.results | default([]) | selectattr('skipped', 'eq', false) | selectattr('disk_existence.name', 'eq', disks.name) | list | length > 0
+
 
     - name: Mount external disk with btrfs
       mount:
