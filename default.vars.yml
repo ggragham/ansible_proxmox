@@ -14,6 +14,7 @@ DISK_ENCRYPTED_LABEL: encrypted_disk  # Luks label.
 DISK_KEYFILE: keyfile.pem  # Encryption key file name.
 DISK_KEYFILE_PATH: '{{ assets_path }}/{{ DISK_KEYFILE }}'  # Path to encryption key file.
 DISK_FSTYPE: ext4  # Disk filesystem type (e.g. ext4, btrfs).
+DISK_BTRFS_LABEL: btrfs_disk  # BTRFS Disk label.
 DISK_PATH: /mnt/storages  # Disk mount path.
 DISK_SUBVOLS_PATH: /mnt/btrfs_subvols  # BTRFS subvolumes mount path.
 
