@@ -36,6 +36,10 @@
       include_tasks: '{{ tasks_path }}/external_disks.yml'
       tags: storage
 
+    - name: Configure Samba share
+      include_tasks: '{{ tasks_path }}/smb.yml'
+      tags: smb
+
     - name: Hide annoying Subscription Notice
       include_tasks: '{{ tasks_path }}/sub_notice_patch.yml'
       tags: sub_notice_patch
@@ -56,6 +60,10 @@
     - name: Restart chronyd
       include_tasks: '{{ handlers_path }}/sntp.yml'
       tags: sntp
+
+    - name: Restart Samba
+      include_tasks: '{{ handlers_path }}/smb.yml'
+      tags: smb
 
     - name: Restart pveproxy
       include_tasks: '{{ handlers_path }}/pveproxy.yml'

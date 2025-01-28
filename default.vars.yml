@@ -44,5 +44,23 @@ DISK_SUBVOLS:  # List of BTRFS subvolumes.
     path: '{{ DISK_SUBVOLS_PATH }}/backup'
     compression: zstd:1
 
+# Samba
+SMB_WORKGROUP: WORKGROUP  # Samba workgroup name.
+SMB_USER: smbuser  # Samba username.
+SMB_PASSWORD: qwerty1234  # Samba username password.
+SMB_GROUP: smbgroup  # Samba user group.
+SMB_IP_ALLOWLIST: 192.168.0.0/16, 10.8.0.0/16  # Allowed IPs for Samba access.
+SMB_LOCAL_MOUNTPOINT: /mnt/smb  # Local mount point for Samba shares.
+
+SMB_SHARE:  # List of Samba shares.
+  - name: media  # Name of the share.
+    path: '{{ DISK_SUBVOLS_PATH }}/media'  # Path to shared directory.
+    mount_point: '{{ SMB_LOCAL_MOUNTPOINT }}/media'  # Mount point for local share.
+    mount_options: uid=100103,gid=100112  # Additional mount points.
+
+  - name: share
+    path: '{{ DISK_PATH }}/share'
+    mount_point: '{{ SMB_LOCAL_MOUNTPOINT }}/share'
+
 # Proxmox VE
 PVE_IP_ALLOWLIST: 192.168.1.0/24,10.8.0.0/16  # Whitelisted subnets and/or IPv4 for access to PVE web interface.

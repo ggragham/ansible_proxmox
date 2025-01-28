@@ -1,0 +1,27 @@
+[global]
+workgroup = {{ SMB_WORKGROUP }}
+server string = Proxmox Samba Server
+security = user
+server min protocol = SMB3
+smb encrypt = required
+encrypt passwords = true
+
+hosts allow = 127.0.0.1 {{ SMB_IP_ALLOWLIST }}
+hosts deny = ALL
+
+log file = /var/log/samba/%m.log
+log level = 1
+max log size = 1000
+
+{% for share in SMB_SHARE %}
+[{{ share.name }}]
+path = {{ share.path }}
+guest ok = no
+browseable = yes
+writable = yes
+valid users = {{ SMB_USER }} {{ USERNAME }} @{{ SMB_GROUP }}
+forse user = {{ SMB_USER }}
+create mask = 0660
+directory mask = 0770
+
+{% endfor %}

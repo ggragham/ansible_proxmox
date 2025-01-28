@@ -1,0 +1,68 @@
+---
+- name: Install and configure Samba
+  block:
+    - name: Create smb group
+      group:
+        name: '{{ SMB_GROUP }}'
+        state: present
+      become: true
+
+    - name: Create smb user
+      user:
+        name: '{{ SMB_USER }}'
+        group: '{{ SMB_GROUP }}'
+        password: "{{ SMB_PASSWORD | password_hash('sha512') }}"
+        shell: /usr/sbin/nologin
+        state: present
+      become: true
+
+    - name: Install Samba
+      apt:
+        name: samba
+        state: latest
+      become: true
+
+    - name: Apply smb config
+      template:
+        src: '{{ templates_path }}/smb_config.conf.j2'
+        dest: /etc/samba/smb.conf
+        mode: 0644
+      notify: Restart Samba
+      become: true
+
+    - name: Restart Samba
+      meta: flush_handlers
+
+    - name: Set smb creds
+      template:
+        src: '{{ templates_path }}/smb_creds.j2'
+        dest: /root/.smbcreds
+        mode: 0400
+      become: true
+
+    - name: Create dirs for Samba mount
+      file:
+        path: '{{ smb_storage_path.mount_point }}'
+        state: directory
+        recurse: true
+        owner: '{{ SMB_USER }}'
+        group: '{{ SMB_GROUP }}'
+        mode: 0770
+      loop: '{{ SMB_SHARE }}'
+      loop_control:
+        loop_var: smb_storage_path
+      become: true
+
+    - name: Mount Samba shares
+      mount:
+        path: '{{ smb_mount_point.mount_point }}'
+        src: //localhost/{{ smb_mount_point.name }}
+        fstype: cifs
+        opts: credentials=/root/.smbcred,x-systemd.automount,iocharset=utf8,rw,vers=3{{ ',' + smb_mount_point.mount_options if smb_mount_point.mount_options is defined and smb_mount_point.mount_options | length > 0 else '' }}
+        state: mounted
+      loop: '{{ SMB_SHARE }}'
+      loop_control:
+        loop_var: smb_mount_point
+      become: true
+
+  tags: smb
