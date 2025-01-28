@@ -14,22 +14,11 @@
       loop_control:
         loop_var: mount_point_path
 
-    - name: Check disk existence
-      block:
-        - name: Check disk with DISK_ENCRYPTED_LABEL exists
-          shell: blkid -o value -s LABEL | grep -q '{{ DISK_ENCRYPTED_LABEL }}'
-          register: encrypted_disk_exists
-          ignore_errors: true
-          when: DISK_ENCRYPTED|bool
-
-        - name: Check disks with labels from DISK_LIST exist
-          shell: blkid -o value -s LABEL | grep -q '{{ disk_existence.name }}'
-          loop: '{{ DISK_LIST }}'
-          loop_control:
-            loop_var: disk_existence
-          register: disk_exists
-          ignore_errors: true
-          when: not DISK_ENCRYPTED|bool
+    - name: Check encrypted disk existence
+      shell: blkid -o value -s LABEL | grep -q '{{ DISK_ENCRYPTED_LABEL }}'
+      register: encrypted_disk_exists
+      ignore_errors: true
+      when: DISK_ENCRYPTED|bool
 
     - name: Encrypted disk
       block:
@@ -46,6 +35,18 @@
         - name: Decrypt disks in cryptab
           command: cryptdisks_start '{{ DISK_ENCRYPTED_LABEL }}'
       when: DISK_ENCRYPTED|bool and encrypted_disk_exists.rc == 0
+
+    - name: Check disk existence
+      block:
+        - name: Check ext4 disks existence
+          shell: blkid -o value -s LABEL | grep -q '{{ disk_existence.name }}'
+          loop: '{{ DISK_LIST }}'
+          loop_control:
+            loop_var: ext4_disk_existence
+          register: disk_exists
+          ignore_errors: true
+          when:
+            - DISK_FSTYPE == 'ext4'
 
     - name: Mount external disk with ext4
       mount:
