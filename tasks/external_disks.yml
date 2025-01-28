@@ -36,12 +36,12 @@
         - name: Copy keyfile
           copy:
             src: '{{ DISK_KEYFILE_PATH }}'
-            dest: /etc/{{ DISK_KEYFILE }}
+            dest: /root/.{{ DISK_KEYFILE }}
             mode: 0400
         - name: Add disk to crypttab
           lineinfile:
             path: /etc/crypttab
-            line: '{{ DISK_ENCRYPTED_LABEL }} LABEL={{ DISK_ENCRYPTED_LABEL }} /etc/{{ DISK_KEYFILE }} luks'
+            line: '{{ DISK_ENCRYPTED_LABEL }} LABEL={{ DISK_ENCRYPTED_LABEL }} /root/.{{ DISK_KEYFILE }} luks'
             state: present
         - name: Decrypt disks in cryptab
           command: cryptdisks_start '{{ DISK_ENCRYPTED_LABEL }}'
