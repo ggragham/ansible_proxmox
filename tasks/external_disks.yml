@@ -90,7 +90,7 @@
             pvesm add btrfs {{ DISK_BTRFS_LABEL }}
             --path {{ DISK_SUBVOLS | selectattr('name', 'equalto', 'pve_storage') | map(attribute='path') | first }}
           register: result
-          failed_when: result.rc != 0
+          failed_when: (result.rc != 0) and (result.rc != 255)
 
   when: EXT_DISK_ENABLED|bool
   become: true
