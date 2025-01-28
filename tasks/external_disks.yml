@@ -87,7 +87,7 @@
       block:
         - name: Add BTRFS storage
           shell: >-
-            pvesm add btrfs {{ DISK_BTRFS_LABEL }}
+            pvesm add btrfs {{ DISK_SUBVOLS | selectattr('name', 'equalto', 'pve_storage') | map(attribute='pve_id') | first }}
             --path {{ DISK_SUBVOLS | selectattr('name', 'equalto', 'pve_storage') | map(attribute='path') | first }}
           register: result
           failed_when: (result.rc != 0) and (result.rc != 255)

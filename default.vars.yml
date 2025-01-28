@@ -29,6 +29,7 @@ DISK_SUBVOLS:  # List of BTRFS subvolumes.
     subvol: '@pve_storage'  # Subvolume name in filesystem.
     path: '{{ DISK_SUBVOLS_PATH }}/pve_storage'  # Subvolume mount point.
     compression: zstd:1  # Subvolume compression.
+    pve_id: internal_storage  # Proxmox VE identifier for the subvolume.
 
   - name: data_storage
     subvol: '@data'
