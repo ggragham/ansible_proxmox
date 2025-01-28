@@ -48,6 +48,13 @@
           when:
             - DISK_FSTYPE == 'ext4'
 
+        - name: Check BTRFS disk existence
+          shell: blkid -o value -s LABEL | grep -q '{{ DISK_BTRFS_LABEL }}'
+          register: btrfs_disk_exists
+          ignore_errors: true
+          when:
+            - DISK_FSTYPE == 'btrfs'
+
     - name: Mount external disk with ext4
       mount:
         path: '{{ disks.mount_point }}'
@@ -62,7 +69,6 @@
         - DISK_FSTYPE == 'ext4'
         - disk_exists.results | default([]) | selectattr('skipped', 'eq', false) | selectattr('disk_existence.name', 'eq', disks.name) | list | length > 0
 
-
     - name: Mount external disk with btrfs
       mount:
         path: '{{ item.path }}'
@@ -75,7 +81,7 @@
         loop_var: item
       when:
         - DISK_FSTYPE == 'btrfs'
-        - disk_exists.results | selectattr('rc', 'eq', 0) | selectattr('disk_existence.name', 'eq', disks.name) | list | length > 0
+        - btrfs_disk_exists.rc == 0
 
     - name: Add disks to Proxmox
       block:
