@@ -65,7 +65,7 @@
     - name: Mount external disk with btrfs
       mount:
         path: '{{ item.path }}'
-        src: LABEL={{ DISK_LABEL }}
+        src: LABEL={{ DISK_BTRFS_LABEL }}
         fstype: btrfs
         opts: subvol={{ item.subvol }},compress={{ item.compression }},x-systemd.requires=cryptsetup.target
         state: mounted
