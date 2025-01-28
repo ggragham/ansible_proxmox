@@ -9,14 +9,19 @@ FAIL2BAN_MAXRETRY: 5  # Number of allowed failed login attempts before banning I
 
 # External Disk
 EXT_DISK_ENABLED: true  # Enables or disables external disk mounting.
-DISK_LABEL: disk  # External disk label.
 DISK_ENCRYPTED: false  # Disk encryption status.
 DISK_ENCRYPTED_LABEL: encrypted_disk  # Luks label.
 DISK_KEYFILE: keyfile.pem  # Encryption key file name.
 DISK_KEYFILE_PATH: '{{ assets_path }}/{{ DISK_KEYFILE }}'  # Path to encryption key file.
-DISK_FSTYPE: btrfs  # Disk filesystem type.
-DISK_PATH: /mnt/{{ DISK_LABEL }}  # Disk mount path.
+DISK_FSTYPE: ext4  # Disk filesystem type (e.g. ext4, btrfs).
+DISK_PATH: /mnt/storages  # Disk mount path.
 DISK_SUBVOLS_PATH: /mnt/btrfs_subvols  # BTRFS subvolumes mount path.
+
+DISK_LIST:  # List of disks to mount.
+  - name: disk1  # Disk label.
+    mount_point: '{{ DISK_PATH }}/disk1'  # Disk mountpoint.
+  - name: disk2
+    mount_point: '{{ DISK_PATH }}/disk2'
 
 DISK_SUBVOLS:  # List of BTRFS subvolumes.
   - name: pve_storage
