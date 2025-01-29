@@ -1,4 +1,5 @@
 ---
 USERNAME: user
+PASSWORD: qwerty1234
 SSH_KEY_PATH: ../assets/id_rsa.pem.pub
 SSH_PORT: 2222
