@@ -47,10 +47,11 @@
       meta: flush_handlers
 
     - name: Check if Samba user exists
-      command: 'pdbedit -L -w | cut -d: -f1 | grep -w {{ SMB_USER }}'
+      shell: 'pdbedit -L -w | cut -d: -f1 | grep -w {{ SMB_USER }}'
       register: samba_user_exist
       ignore_errors: true
       changed_when: false
+      become: true
 
     - name: Add user to Samba
       command: smbpasswd -a {{ SMB_USER }}
