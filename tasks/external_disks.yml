@@ -22,6 +22,11 @@
 
     - name: Encrypted disk
       block:
+        - name: Install cryptsetup
+          apt:
+            name: cryptsetup
+            state: latest
+            update_cache: true
         - name: Copy keyfile
           copy:
             src: '{{ DISK_KEYFILE_PATH }}'
