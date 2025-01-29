@@ -58,7 +58,7 @@
         path: '{{ smb_mount_point.mount_point }}'
         src: //localhost/{{ smb_mount_point.name }}
         fstype: cifs
-        opts: credentials=/root/.smbcred,x-systemd.automount,iocharset=utf8,rw,vers=3{{ ',' + smb_mount_point.mount_options if smb_mount_point.mount_options is defined and smb_mount_point.mount_options | length > 0 else '' }}
+        opts: credentials=/root/.smbcreds,x-systemd.automount,iocharset=utf8,rw,vers=3{{ ',' + smb_mount_point.mount_options if smb_mount_point.mount_options is defined and smb_mount_point.mount_options | length > 0 else '' }}
         state: mounted
       loop: '{{ SMB_SHARE }}'
       loop_control:
