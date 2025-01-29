@@ -1,6 +1,12 @@
 ---
 - name: Install and configure Samba
   block:
+    - name: Install Samba
+      apt:
+        name: samba
+        state: latest
+      become: true
+
     - name: Create smb group
       group:
         name: '{{ SMB_GROUP }}'
@@ -11,15 +17,10 @@
       user:
         name: '{{ SMB_USER }}'
         group: '{{ SMB_GROUP }}'
-        password: "{{ SMB_PASSWORD | password_hash('sha512') }}"
+        # password: "{{ SMB_PASSWORD | password_hash('sha512') }}"
+        create_home: false
         shell: /usr/sbin/nologin
         state: present
-      become: true
-
-    - name: Install Samba
-      apt:
-        name: samba
-        state: latest
       become: true
 
     - name: Apply smb config
@@ -32,6 +33,25 @@
 
     - name: Restart Samba
       meta: flush_handlers
+
+    - name: Check if Samba user exists
+      command: 'pdbedit -L -w | cut -d: -f1 | grep -w {{ SMB_USER }}'
+      register: samba_user_exist
+      ignore_errors: true
+      changed_when: false
+
+    - name: Add user to Samba
+      command: smbpasswd -a {{ SMB_USER }}
+      args:
+        stdin: "{{ SMB_PASSWORD }}\n{{ SMB_PASSWORD }}"
+      when: samba_user_exist.rc != 0
+      no_log: true
+      become: true
+
+    - name: Enable Samba user
+      command: smbpasswd -e {{ SMB_USER }}
+      when: samba_user_exist.rc != 0
+      become: true
 
     - name: Set smb creds
       template:
