@@ -1,5 +1,25 @@
 ---
 - block:
+    - name: Disable Enterprise Repos
+      replace:
+        path: /etc/apt/sources.list.d/{{ enterprise_repo }}.list
+        regexp: ^(deb .*enterprise.*)$
+        replace: '# \1'
+      loop:
+        - pve-enterprise
+        - ceph
+      loop_control:
+        loop_var: enterprise_repo
+      become: true
+
+    - name: Add No-Subscription Repo
+      lineinfile:
+        path: /etc/apt/sources.list
+        line: deb http://download.proxmox.com/debian/pve {{ ansible_distribution_release }} pve-no-subscription
+        insertafter: EOF
+        state: present
+      become: true
+
     - name: Uninstall garbage
       apt:
         name:
