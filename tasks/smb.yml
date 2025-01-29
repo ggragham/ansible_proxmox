@@ -23,6 +23,18 @@
         state: present
       become: true
 
+    - name: Set group and mode for shared dirs
+      file:
+        path: '{{ smb_shared_dir.path }}'
+        state: directory
+        owner: root
+        group: '{{ SMB_GROUP }}'
+        mode: g=rwx
+      loop: '{{ SMB_SHARE }}'
+      loop_control:
+        loop_var: smb_shared_dir
+      become: true
+
     - name: Apply smb config
       template:
         src: '{{ templates_path }}/smb_config.conf.j2'
