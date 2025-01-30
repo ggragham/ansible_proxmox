@@ -71,3 +71,7 @@ SMB_SHARE:  # List of Samba shares.
 
 # Proxmox VE
 PVE_IP_ALLOWLIST: 192.168.1.0/24,10.8.0.0/16  # Whitelisted subnets and/or IPv4 for access to PVE web interface.
+
+## Proxmox VE SSL
+PVE_SSL_ENABLE: true  # Toggle SSL cert install.
+PVE_SSL_FILE_NAME: cert  # Name of the SSL certificate file.

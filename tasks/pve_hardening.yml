@@ -9,4 +9,35 @@
       notify: Restart pveproxy
       become: true
 
+    - name: Configure SSL
+      block:
+        - name: Set vars
+          set_fact:
+            pve_ssl_path: /etc/pve/local
+            pve_ssl_filename: pveproxy-ssl
+
+        - name: Touch files to set permissions
+          file:
+            path: '{{ pve_ssl_path }}/{{ pve_ssl_filename }}.{{ dummy_ssl_file_extension }}'
+            state: touch
+          loop:
+            - pem
+            - key
+          loop_control:
+            loop_var: dummy_ssl_file_extension
+          become: true
+
+        - name: Apply SSL cert
+          copy:
+            src: '{{ assets_path }}/{{ PVE_SSL_FILE_NAME }}.{{ ssl_file_extension }}'
+            dest: '{{ pve_ssl_path}}/{{ pve_ssl_filename }}.{{ ssl_file_extension }}'
+          loop:
+            - key
+            - pem
+          loop_control:
+            loop_var: ssl_file_extension
+          become: true
+
+      when: PVE_SSL_ENABLE
+
   tags: pve_hardening
