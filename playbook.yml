@@ -53,6 +53,10 @@
       tags: pve_hardening
 
   handlers:
+    - name: Restart networking
+      include_tasks: '{{ handlers_path }}/network.yml'
+      tags: network
+
     - name: Restart sshd
       include_tasks: '{{ handlers_path }}/ssh.yml'
       tags: ssh

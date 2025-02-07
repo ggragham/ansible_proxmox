@@ -14,4 +14,23 @@
         loop_var: ipv6_kernel_parameter
       become: true
 
+    - name: Configure NAT interface
+      blockinfile:
+        path: /etc/network/interfaces
+        insertbefore: ^source /etc/network/interfaces.d/\*
+        block: |
+          auto vmbr100
+          iface vmbr100 inet static
+            address 172.16.0.1
+            netmask 255.255.0.0
+            bridge-ports none
+            bridge-stp off
+            bridge-fd 0
+            post-up echo 1 > /proc/sys/net/ipv4/ip_forward
+            post-up iptables -t nat -A POSTROUTING -s '172.16.0.0/16' -o vmbr0 -j MASQUERADE
+            post-down iptables -t nat -D POSTROUTING -s '172.16.0.0/16' -o vmbr0 -j MASQUERADE
+        marker_end: NAT
+      notify: Restart networking
+      become: true
+
   tags: network
