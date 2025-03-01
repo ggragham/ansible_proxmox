@@ -56,3 +56,5 @@ inventory.yml
 inventory.ini
 *vars.yml
 !default.vars.yml
+*playbook.yml
+!default.playbook.yml
