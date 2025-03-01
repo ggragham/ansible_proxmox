@@ -75,3 +75,21 @@ PVE_IP_ALLOWLIST: 192.168.1.0/24,10.8.0.0/16  # Whitelisted subnets and/or IPv4 
 ## Proxmox VE SSL
 PVE_SSL_ENABLE: true  # Toggle SSL cert install.
 PVE_SSL_FILE_NAME: cert  # Name of the SSL certificate file.
+
+## Proxmox VE network
+PVE_NETWORK_INTERFACE:
+  - name: vmbr100
+    address: 172.16.0.1
+    netmask: 255.255.0.0
+    nat: true
+    description: NAT Interface
+  - name: vmbr200
+    address: 192.168.1.1
+    netmask: 255.255.255.0
+    nat: false
+    description: Private Network
+  - name: vmbr300
+    address: 10.0.0.1
+    netmask: 255.255.255.0
+    nat: false
+    description: Database Network

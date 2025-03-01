@@ -14,23 +14,43 @@
         loop_var: ipv6_kernel_parameter
       become: true
 
-    - name: Configure NAT interface
-      blockinfile:
-        path: /etc/network/interfaces
-        insertbefore: ^source /etc/network/interfaces.d/\*
-        block: |
-          auto vmbr100
-          iface vmbr100 inet static
-            address 172.16.0.1
-            netmask 255.255.0.0
-            bridge-ports none
-            bridge-stp off
-            bridge-fd 0
-            post-up echo 1 > /proc/sys/net/ipv4/ip_forward
-            post-up iptables -t nat -A POSTROUTING -s '172.16.0.0/16' -o vmbr0 -j MASQUERADE
-            post-down iptables -t nat -D POSTROUTING -s '172.16.0.0/16' -o vmbr0 -j MASQUERADE
-        marker_end: NAT
-      notify: Restart networking
-      become: true
+    - name: Configure network interfaces
+      block:
+        - name: Check network interface existence
+          command: grep -q '{{ network_interface.name }}' /etc/network/interfaces
+          register: check_result
+          ignore_errors: true
+          loop: '{{ PVE_NETWORK_INTERFACE }}'
+          loop_control:
+            loop_var: network_interface
+
+        - name: Configure network interface
+          blockinfile:
+            path: /etc/network/interfaces
+            insertbefore: ^source /etc/network/interfaces.d/\*
+            block: |
+              auto {{ network_interface.name }}
+              iface {{ network_interface.name }} inet static
+                address {{ network_interface.address }}
+                netmask {{ network_interface.netmask }}
+                bridge-ports none
+                bridge-stp off
+                bridge-fd 0
+              {% if network_interface.nat %}
+                post-up echo 1 > /proc/sys/net/ipv4/ip_forward
+                post-up iptables -t nat -A POSTROUTING -s '{{ network_interface.address }}/16' -o vmbr0 -j MASQUERADE
+                post-down iptables -t nat -D POSTROUTING -s '{{ network_interface.address }}/16' -o vmbr0 -j MASQUERADE
+              {% endif %}
+              # {{ network_interface.description }}
+            marker: '{mark}'
+            marker_begin: ''
+            marker_end: \n
+          when: check_result.results[network_interface_index].rc != 0
+          loop: '{{ PVE_NETWORK_INTERFACE }}'
+          loop_control:
+            index_var: network_interface_index
+            loop_var: network_interface
+          notify: Restart networking
+          become: true
 
   tags: network
