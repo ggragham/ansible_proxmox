@@ -1,0 +1,58 @@
+---
+- name: Config WireGuard
+  block:
+    - name: Check WireGuard config existence
+      stat:
+        path: '{{ WIREGUARD_CONFIG_PATH_SRC }}'
+      delegate_to: localhost
+      register: wg_config_existence
+
+    - name: Install and config WireGuard
+      block:
+        - name: Install WireGuard tools
+          apt:
+            name: wireguard-tools
+            state: latest
+            update_cache: true
+            install_recommends: false
+
+        - name: Apply config
+          copy:
+            src: '{{ WIREGUARD_CONFIG_PATH_SRC }}'
+            dest: /etc/wireguard/wg0.conf
+            mode: 0400
+
+        - name: Configure DNS
+          block:
+            - name: Check if WireGuard DNS is already in /etc/resolv.conf
+              command: grep -q '^nameserver {{ WIREGUARD_DNS }}' /etc/resolv.conf
+              register: wg_dns_check
+              failed_when: false
+              changed_when: false
+
+            - block:
+                - name: Remove all nameserver entries
+                  lineinfile:
+                    path: /etc/resolv.conf
+                    regexp: ^nameserver
+                    state: absent
+
+                - name: Add WireGuard DNS to /etc/resolv.conf
+                  lineinfile:
+                    path: /etc/resolv.conf
+                    line: nameserver {{ WIREGUARD_DNS }}
+                    create: true
+                    state: present
+              when: wg_dns_check.rc == 1
+
+        - name: Start WireGuard
+          service:
+            name: wg-quick@wg0
+            state: started
+            enabled: true
+
+      when: wg_config_existence.stat.exists
+      become: true
+
+  when: WIREGUARD_ENABLED
+  tags: wireguard

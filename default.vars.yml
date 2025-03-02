@@ -7,6 +7,13 @@ FAIL2BAN_BANTIME: 5m  # Duration for which IPs are banned.
 FAIL2BAN_FINDTIME: 3m  # Time window to consider failed login attempts.
 FAIL2BAN_MAXRETRY: 5  # Number of allowed failed login attempts before banning IP.
 
+# WireGuard
+WIREGUARD_ENABLED: false  # Enable or disable WireGuard VPN.
+WIREGUARD_CONFIG_PATH_SRC: '{{ assets_path }}/wg0.conf'  # Source path for WireGuard configuration.
+WIREGUARD_PORT: 51820  # Port for WireGuard VPN.
+# ! Ensure "DNS =" is not present in Wireguard config before running.
+WIREGUARD_DNS: 10.8.0.1  # DNS server for WireGuard.  
+
 # External Disk
 EXT_DISK_ENABLED: true  # Enables or disables external disk mounting.
 DISK_ENCRYPTED: false  # Disk encryption status.

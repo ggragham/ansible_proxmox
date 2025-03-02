@@ -32,6 +32,10 @@
       include_tasks: '{{ tasks_path }}/fail2ban.yml'
       tags: fail2ban
 
+    - name: Install and config WireGuard
+      include_tasks: '{{ tasks_path }}/wireguard.yml'
+      tags: wireguard
+
     - name: Install and config Chrony
       include_tasks: '{{ tasks_path }}/sntp.yml'
       tags: sntp
