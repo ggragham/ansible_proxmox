@@ -11,14 +11,15 @@
     tasks_path: '{{ playbook_dir }}/tasks'
     templates_path: '{{ playbook_dir }}/templates'
 
-  tasks:
-    - name: SSH
-      include_tasks: '{{ tasks_path }}/ssh.yml'
-      tags: ssh
-
+  roles:
     - name: System Hardening
-      include_tasks: '{{ tasks_path }}/system_hardening.yml'
+      role: hardening_ansible_role
       tags: system_hardening
+
+  tasks:
+    - name: Auth settings
+      include_tasks: '{{ tasks_path }}/auth.yml'
+      tags: auth
 
     - name: Network config
       include_tasks: '{{ tasks_path }}/network.yml'
@@ -28,17 +29,9 @@
       include_tasks: '{{ tasks_path }}/base.yml'
       tags: base
 
-    - name: Install and config fail2ban
-      include_tasks: '{{ tasks_path }}/fail2ban.yml'
-      tags: fail2ban
-
     - name: Install and config WireGuard
       include_tasks: '{{ tasks_path }}/wireguard.yml'
       tags: wireguard
-
-    - name: Install and config Chrony
-      include_tasks: '{{ tasks_path }}/sntp.yml'
-      tags: sntp
 
     - name: Mound external storages
       include_tasks: '{{ tasks_path }}/external_disks.yml'
@@ -60,18 +53,6 @@
     - name: Restart networking
       include_tasks: '{{ handlers_path }}/network.yml'
       tags: network
-
-    - name: Restart sshd
-      include_tasks: '{{ handlers_path }}/ssh.yml'
-      tags: ssh
-
-    - name: Restart fail2ban
-      include_tasks: '{{ handlers_path }}/fail2ban.yml'
-      tags: fail2ban
-
-    - name: Restart chronyd
-      include_tasks: '{{ handlers_path }}/sntp.yml'
-      tags: sntp
 
     - name: Restart Samba
       include_tasks: '{{ handlers_path }}/smb.yml'

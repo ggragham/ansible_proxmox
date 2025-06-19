@@ -2,10 +2,31 @@
 USERNAME: user
 SSH_PORT: 2222
 
-# fail2ban
-FAIL2BAN_BANTIME: 5m  # Duration for which IPs are banned.
-FAIL2BAN_FINDTIME: 3m  # Time window to consider failed login attempts.
-FAIL2BAN_MAXRETRY: 5  # Number of allowed failed login attempts before banning IP.
+# Hardening
+HARDENING_MISC_CONFIG_ENABLED: true  # Enable or disable miscellaneous hardening tasks.
+HARDENING_MISC_YESCRYPT_HOST_FACTOR: 8  # Yescrypt factor for password hashing difficulty.
+HARDENING_MISC_NODE_TYPE: server  # Specify the type of node (server or desktop).
+
+HARDENING_AUTH_FAILLOCK_CONFIG_ENABLED: false  # Enable or disable faillock.
+
+HARDENING_NETWORK_CONFIG_ENABLED: true  # Enable or disable network configuration.
+HARDENING_NETWORK_DISABLE_IPV6: true  # Enable or disable IPv6 stack disabling.
+
+HARDENING_DEBIAN_HARDENING_ENABLED: true  # Enable or disable Debian-based configuration.
+HARDENING_REDHAT_HARDENING_ENABLED: false  # Enable or disable RedHat-based configuration.
+
+HARDENING_SSH_CONFIG_ENABLED: true  # Enable or disable SSH configuration.
+HARDENING_SSH_REMOVE_ROOT_PASSWORD_ENABLED: false  # Enable or disable root password removal.
+HARDENING_SSH_PERMIT_ROOT_LOGIN: "{{ 'yes' }}"  # Allow or disallow root login via SSH (yes/no).
+
+HARDENING_FAIL2BAN_ENABLED: true  # Enable or disable Fail2Ban installation.
+HARDENING_FAIL2BAN_BANTIME: 5m  # Duration for which IPs are banned.
+HARDENING_FAIL2BAN_FINDTIME: 3m  # Time window to consider failed login attempts.
+HARDENING_FAIL2BAN_MAXRETRY: 5  # Number of allowed failed login attempts before banning IP.
+
+HARDENING_CHRONY_ENABLED: true  # Enable or disable Chrony installation.
+
+HARDENING_FIREWALL_ENABLED: false  # Enable or disable firewall hardening.
 
 # WireGuard
 WIREGUARD_ENABLED: false  # Enable or disable WireGuard VPN.

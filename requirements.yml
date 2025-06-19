@@ -1,1 +1,5 @@
 ---
+- name: hardening_ansible_role
+  src: git+https://github.com/ggragham/hardening_ansible_role.git
+  scm: git
+  version: master
