@@ -44,7 +44,7 @@
     - name: Check disk existence
       block:
         - name: Check ext4 disks existence
-          shell: blkid -o value -s LABEL | grep -q '{{ disk_existence.name }}'
+          shell: blkid -o value -s LABEL | grep -q '{{ ext4_disk_existence.name }}'
           loop: '{{ DISK_LIST }}'
           loop_control:
             loop_var: ext4_disk_existence
@@ -72,7 +72,7 @@
         loop_var: disks
       when:
         - DISK_FSTYPE == 'ext4'
-        - disk_exists.results | default([]) | selectattr('skipped', 'eq', false) | selectattr('disk_existence.name', 'eq', disks.name) | list | length > 0
+        # - disk_exists.results | default([]) | selectattr('skipped', 'eq', false) | selectattr('ext4_disk_existence.name', 'eq', disks.name) | list | length > 0
 
     - name: Mount external disk with btrfs
       mount:
