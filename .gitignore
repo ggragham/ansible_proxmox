@@ -51,6 +51,7 @@ Temporary Items
 # Other
 assets/*
 !assets/README.md
+.external_roles/
 
 inventory.yml
 inventory.ini
