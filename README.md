@@ -21,7 +21,11 @@ git clone https://github.com/ggragham/ansible_proxmox.git && cd ansible_proxmox/
 1. Copy the inventory file template (`inventory.ini.template`) to `inventory.ini` and adjust it for your server.
 2. Use `default.vars.yml` and `default.playbook.yml` as templates for your configuration. Rename them as needed (e.g., `proxmox_server.vars.yml`/`proxmox_server.playbook.yml`). These files will be excluded from Git (see [`.gitignore`](./.gitignore)).
 3. Place your SSL certificate, SSH key, VPN configuration, etc., in the `./assets` directory, and reference them in your variables file.
-4. Run your chosen playbook using:
+4. Install the Ansible roles listed in the `requirements.yml` file:
+```bash
+ansible-galaxy role install --force --role-file requirements.yml
+```
+5. Run your chosen playbook using:
 ```bash
 ansible-playbook proxmox_server.playbook.yml
 ```
