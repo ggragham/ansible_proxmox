@@ -1,7 +1,15 @@
-[proxmox_server]
-prxmox_server_1 ansible_host=192.168.1.10
+[proxmox_master]
+pve1 ansible_host=10.10.10.10
 
-[proxmox_server:vars]
-ansible_port=2222
-ansible_user=user
-ansible_ssh_private_key_file=~/.ssh/srv_key.pem
+[proxmox_slave]
+pve2 ansible_host=10.10.10.11
+pve3 ansible_host=10.10.10.12
+
+[proxmox:children]
+proxmox_master
+proxmox_slave
+
+[proxmox:vars]
+ansible_port=22
+ansible_user=root
+ansible_ssh_private_key_file=~/.ssh/id_ed25519.pem
