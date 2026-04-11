@@ -6,6 +6,7 @@
         - name: Check network interface existence
           command: grep -q '{{ network_interface.name }}' /etc/network/interfaces
           register: check_result
+          changed_when: false
           ignore_errors: true
           loop: '{{ PVE_NETWORK_INTERFACE }}'
           loop_control:
