@@ -25,8 +25,8 @@
                 bridge-fd 0
               {% if network_interface.nat %}
                 post-up echo 1 > /proc/sys/net/ipv4/ip_forward
-                post-up iptables -t nat -A POSTROUTING -s '{{ network_interface.address }}/16' -o vmbr0 -j MASQUERADE
-                post-down iptables -t nat -D POSTROUTING -s '{{ network_interface.address }}/16' -o vmbr0 -j MASQUERADE
+                post-up iptables -t nat -A POSTROUTING -s '{{ (network_interface.address ~ "/" ~ network_interface.netmask) | ansible.utils.ipaddr("network/prefix") }}' -o vmbr0 -j MASQUERADE
+                post-down iptables -t nat -D POSTROUTING -s '{{ (network_interface.address ~ "/" ~ network_interface.netmask) | ansible.utils.ipaddr("network/prefix") }}' -o vmbr0 -j MASQUERADE
               {% endif %}
               # {{ network_interface.description }}
             marker: '{mark}'
