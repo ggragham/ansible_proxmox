@@ -154,3 +154,37 @@
   become: true
   run_once: true
   delegate_to: '{{ groups[pve_cluster_master_group] | first }}'
+
+- name: SDN Summary Output
+  block:
+    - name: Get SDN zones summary
+      shell: pvesh get /cluster/sdn/zones/{{ item.zone }} --output-format yaml
+      loop: '{{ PVE_SDN_ZONES }}'
+      loop_control:
+        label: '{{ item.zone }}'
+      register: pve_sdn_zones_summary
+      changed_when: false
+      failed_when: false
+      become: true
+      run_once: true
+      delegate_to: '{{ groups[pve_cluster_master_group] | first }}'
+
+    - name: Get SDN VNets summary
+      shell: pvesh get /cluster/sdn/vnets/{{ item.vnet }} --output-format yaml
+      loop: '{{ PVE_SDN_VNETS }}'
+      loop_control:
+        label: '{{ item.vnet }}'
+      register: pve_sdn_vnets_summary
+      changed_when: false
+      failed_when: false
+      become: true
+      run_once: true
+      delegate_to: '{{ groups[pve_cluster_master_group] | first }}'
+
+    - name: Show SDN summary
+      debug:
+        msg:
+          - zones: "{{ pve_sdn_zones_summary.results | map(attribute='stdout_lines') | list }}"
+          - vnets: "{{ pve_sdn_vnets_summary.results | map(attribute='stdout_lines') | list }}"
+      run_once: true
+      delegate_to: '{{ groups[pve_cluster_master_group] | first }}'
