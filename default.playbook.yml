@@ -49,6 +49,13 @@
       include_tasks: '{{ tasks_path }}/pve_hardening.yml'
       tags: pve_hardening
 
+    - name: Create Cluster
+      import_tasks: '{{ tasks_path }}/pve_cluster.yml'
+      vars:
+        pve_cluster_bootstrap_group: proxmox_master
+        pve_cluster_join_group: proxmox_slave
+      tags: cluster
+
   handlers:
     - name: Restart networking
       include_tasks: '{{ handlers_path }}/network.yml'

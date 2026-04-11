@@ -1,0 +1,133 @@
+---
+- name: Check if node already has cluster config
+  stat:
+    path: /etc/pve/corosync.conf
+  register: pve_corosync_conf
+
+- name: Read current cluster name if node is already clustered
+  shell: "pvecm status 2>/dev/null | awk -F': ' '/^Name:/ {print $2; exit}'"
+  register: pve_current_cluster_name
+  changed_when: false
+  failed_when: false
+  when: pve_corosync_conf.stat.exists
+
+- name: Bootstrap cluster on first master node
+  block:
+    - name: Save normalized current cluster name
+      set_fact:
+        pve_current_cluster_name_normalized: "{{ pve_current_cluster_name.stdout | default('') | trim }}"
+
+    - name: Fail if bootstrap node already belongs to another cluster
+      fail:
+        msg: >-
+          Node {{ inventory_hostname }} is already in cluster
+          '{{ pve_current_cluster_name_normalized }}', expected '{{ PVE_CLUSTER_NAME }}'.
+      when:
+        - pve_corosync_conf.stat.exists
+        - pve_current_cluster_name_normalized | length > 0
+        - pve_current_cluster_name_normalized != PVE_CLUSTER_NAME
+
+    - name: Create Proxmox cluster
+      command: pvecm create '{{ PVE_CLUSTER_NAME }}'
+      register: pve_cluster_create
+      changed_when: pve_cluster_create.rc == 0
+      when: not pve_corosync_conf.stat.exists
+
+    - name: Wait for cluster config to appear
+      wait_for:
+        path: /etc/pve/corosync.conf
+        timeout: 90
+
+    - name: Wait for local PVE certificate to appear
+      wait_for:
+        path: /etc/pve/local/pve-ssl.pem
+        timeout: 90
+
+    - name: Read bootstrap certificate fingerprint
+      shell: openssl x509 -in /etc/pve/local/pve-ssl.pem -noout -fingerprint -sha256 | awk -F= '{print $2}'
+      register: pve_bootstrap_fingerprint
+      changed_when: false
+      no_log: true
+
+    - name: Save join data
+      set_fact:
+        pve_cluster_master_ip: '{{ ansible_host }}'
+        pve_cluster_fingerprint: '{{ pve_bootstrap_fingerprint.stdout | trim }}'
+      no_log: true
+
+  when:
+    - pve_cluster_bootstrap_group in group_names
+    - inventory_hostname == groups[pve_cluster_bootstrap_group][0]
+
+- name: Join nodes to cluster
+  block:
+    - name: Save normalized current cluster name on joining node
+      set_fact:
+        pve_current_cluster_name_normalized: "{{ pve_current_cluster_name.stdout | default('') | trim }}"
+
+    - name: Fail if node already belongs to another cluster
+      fail:
+        msg: >-
+          Node {{ inventory_hostname }} is already in cluster
+          '{{ pve_current_cluster_name_normalized }}', expected '{{ PVE_CLUSTER_NAME }}'.
+      when:
+        - pve_corosync_conf.stat.exists
+        - pve_current_cluster_name_normalized | length > 0
+        - pve_current_cluster_name_normalized != PVE_CLUSTER_NAME
+
+    - name: Join Cluster
+      block:
+        - name: Install python3-pexpect
+          apt:
+            name: python3-pexpect
+            state: present
+            update_cache: true
+          register: pexpect_pkg
+
+        - name: Join node to cluster
+          expect:
+            command: >-
+              pvecm add {{ hostvars[groups[pve_cluster_bootstrap_group][0]].pve_cluster_master_ip }}
+              --fingerprint {{ hostvars[groups[pve_cluster_bootstrap_group][0]].pve_cluster_fingerprint }}
+            responses:
+              '(?i)password.*:': '{{ pve_cluster_master_password | default(ansible_password) }}'
+            timeout: 180
+            echo: false
+            creates: /etc/pve/corosync.conf
+          register: pve_cluster_join
+          no_log: true
+          throttle: 1
+
+      always:
+        - name: Uninstall python3-pexpect
+          apt:
+            name: python3-pexpect
+            state: absent
+            autoremove: true
+            purge: true
+          when:
+            - pexpect_pkg is defined
+            - pexpect_pkg.changed
+
+        - name: Wait for joined cluster config to appear
+          wait_for:
+            path: /etc/pve/corosync.conf
+            timeout: 240
+      when:
+        - not pve_corosync_conf.stat.exists
+
+  when:
+    - pve_cluster_join_group in group_names
+    - hostvars[groups[pve_cluster_bootstrap_group][0]].pve_cluster_master_ip is defined
+    - hostvars[groups[pve_cluster_bootstrap_group][0]].pve_cluster_fingerprint is defined
+
+- name: Summary output
+  block:
+    - name: Verify cluster status
+      command: pvecm status
+      register: pve_cluster_status
+      changed_when: false
+
+    - name: Show cluster status summary
+      debug:
+        var: pve_cluster_status.stdout_lines

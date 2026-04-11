@@ -46,3 +46,6 @@ PVE_SSL_FILE_NAME: cert  # Name of the SSL certificate file.
 
 ## Proxmox VE network
 # Check host_vars/ templates.
+
+## Proxmox Cluster
+PVE_CLUSTER_NAME: foobar
