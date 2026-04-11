@@ -79,6 +79,11 @@
       when: not pve_repo_use_deb822
       become: true
 
+    - name: Update apt cache
+      apt:
+        update_cache: true
+      become: true
+
 - name: Uninstall garbage
   apt:
     name:
