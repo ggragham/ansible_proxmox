@@ -56,6 +56,12 @@
         pve_cluster_join_group: proxmox_slave
       tags: cluster
 
+    - name: Configure SDN
+      import_tasks: '{{ tasks_path }}/pve_sdn.yml'
+      vars:
+        pve_cluster_master_group: proxmox_master
+      tags: sdn
+
   handlers:
     - name: Restart networking
       include_tasks: '{{ handlers_path }}/network.yml'

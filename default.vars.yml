@@ -49,3 +49,28 @@ PVE_SSL_FILE_NAME: cert  # Name of the SSL certificate file.
 
 ## Proxmox Cluster
 PVE_CLUSTER_NAME: foobar
+
+## Proxmox SDN
+PVE_SDN_ZONES:
+  - zone: vxlan01
+    type: vxlan
+    peers: 10.10.10.10,10.10.10.11,10.10.10.12
+    nodes: pve01,pve02,pve03
+    ipam: pve
+    mtu: 1450
+
+PVE_SDN_VNETS:
+  - vnet: vnet200
+    zone: vxlan01
+    tag: 200
+    alias: Private Network
+
+  - vnet: vnet300
+    zone: vxlan01
+    tag: 300
+    alias: Database Network
+
+  - vnet: vnet400
+    zone: vxlan01
+    tag: 400
+    alias: Management
