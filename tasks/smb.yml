@@ -78,9 +78,6 @@
         path: '{{ smb_storage_path.mount_point }}'
         state: directory
         recurse: true
-        owner: '{{ SMB_USER }}'
-        group: '{{ SMB_GROUP }}'
-        mode: 0770
       loop: '{{ SMB_SHARE }}'
       loop_control:
         loop_var: smb_storage_path
