@@ -138,6 +138,88 @@
       run_once: true
       delegate_to: '{{ groups[pve_cluster_master_group] | first }}'
 
+- name: Create SDN VNet subnets
+  block:
+    - name: Read current SDN VNet subnets
+      shell: pvesh get /cluster/sdn/vnets/{{ item.vnet }}/subnets --output-format json
+      loop: '{{ PVE_SDN_VNETS }}'
+      loop_control:
+        label: '{{ item.vnet }}'
+      register: pve_sdn_subnet_current
+      failed_when: false
+      changed_when: false
+      become: true
+      run_once: true
+      delegate_to: '{{ groups[pve_cluster_master_group] | first }}'
+
+    - name: Build current SDN VNet subnet map
+      set_fact:
+        pve_sdn_subnet_current_map: >-
+          {{
+            (pve_sdn_subnet_current_map | default({}))| combine({
+              item.item.vnet: ((item.rc == 0) | ternary((item.stdout | default('[]')) | from_json, []))
+            })
+          }}
+      loop: '{{ pve_sdn_subnet_current.results }}'
+      loop_control:
+        label: '{{ item.item.vnet }}'
+      run_once: true
+
+    - name: Create SDN VNet subnets
+      shell: >-
+        pvesh create /cluster/sdn/vnets/{{ item.0.vnet }}/subnets
+        --type subnet
+        --subnet {{ item.1.subnet | quote }}
+        {% if item.1.gateway is not none and (item.1.gateway | string | trim) != '' %}
+        --gateway {{ item.1.gateway | quote }}
+        {% endif %}
+        {% if item.1.snat is defined %}
+        --snat {{ (item.1.snat | string) | quote }}
+        {% endif %}
+      vars:
+        current_subnet_list: '{{ pve_sdn_subnet_current_map.get(item.0.vnet, []) }}'
+        current_subnet: "{{ (current_subnet_list | selectattr('cidr', 'equalto', item.1.subnet) | list | first) | default({}) }}"
+      loop: "{{ PVE_SDN_VNETS | subelements('subnets', skip_missing=True) }}"
+      loop_control:
+        label: '{{ item.0.vnet }} -> {{ item.1.subnet }}'
+      when: current_subnet == {}
+      register: pve_sdn_subnet_create
+      changed_when: true
+      become: true
+      run_once: true
+      delegate_to: '{{ groups[pve_cluster_master_group] | first }}'
+
+    - name: Update existing SDN VNet subnets when drift detected
+      shell: >-
+        pvesh set /cluster/sdn/vnets/{{ item.0.vnet }}/subnets/{{ current_subnet.subnet | default(current_subnet.id) }}
+        {% if desired_subnet_gateway != '' %}
+        --gateway {{ desired_subnet_gateway | quote }}
+        {% endif %}
+        {% if item.1.snat is defined %}
+        --snat {{ (item.1.snat | string) | quote }}
+        {% endif %}
+      vars:
+        current_subnet_list: '{{ pve_sdn_subnet_current_map.get(item.0.vnet, []) }}'
+        current_subnet: "{{ (current_subnet_list | selectattr('cidr', 'equalto', item.1.subnet) | list | first) | default({}) }}"
+        current_subnet_gateway: "{{ current_subnet.get('gateway') if current_subnet.get('gateway') is not none else '' }}"
+        desired_subnet_gateway: "{{ item.1.gateway if item.1.gateway is not none else '' }}"
+        current_subnet_snat: "{{ current_subnet.get('snat', '0') | string }}"
+        desired_subnet_snat: '{{ item.1.snat | string }}'
+      loop: "{{ PVE_SDN_VNETS | subelements('subnets', skip_missing=True) }}"
+      loop_control:
+        label: '{{ item.0.vnet }} -> {{ item.1.subnet }}'
+      when:
+        - current_subnet != {}
+        - >
+          ((current_subnet_gateway | string | trim) != (desired_subnet_gateway | string | trim))
+          or
+          (current_subnet_snat != desired_subnet_snat)
+      register: pve_sdn_subnet_update
+      changed_when: true
+      become: true
+      run_once: true
+      delegate_to: '{{ groups[pve_cluster_master_group] | first }}'
+
 - name: Apply SDN changes cluster-wide
   shell: pvesh set /cluster/sdn
   when:
@@ -149,6 +231,10 @@
       (pve_sdn_vnet_create is defined and pve_sdn_vnet_create is changed)
       or
       (pve_sdn_vnet_update is defined and pve_sdn_vnet_update is changed)
+      or
+      (pve_sdn_subnet_create is defined and pve_sdn_subnet_create is changed)
+      or
+      (pve_sdn_subnet_update is defined and pve_sdn_subnet_update is changed)
   register: pve_sdn_apply
   changed_when: true
   become: true
@@ -181,10 +267,23 @@
       run_once: true
       delegate_to: '{{ groups[pve_cluster_master_group] | first }}'
 
+    - name: Get SDN subnets summary
+      shell: pvesh get /cluster/sdn/vnets/{{ item.vnet }}/subnets --output-format yaml
+      loop: '{{ PVE_SDN_VNETS }}'
+      loop_control:
+        label: '{{ item.vnet }}'
+      register: pve_sdn_subnets_summary
+      changed_when: false
+      failed_when: false
+      become: true
+      run_once: true
+      delegate_to: '{{ groups[pve_cluster_master_group] | first }}'
+
     - name: Show SDN summary
       debug:
         msg:
           - zones: "{{ pve_sdn_zones_summary.results | map(attribute='stdout_lines') | list }}"
           - vnets: "{{ pve_sdn_vnets_summary.results | map(attribute='stdout_lines') | list }}"
+          - subnets: "{{ pve_sdn_subnets_summary.results | map(attribute='stdout_lines') | list }}"
       run_once: true
       delegate_to: '{{ groups[pve_cluster_master_group] | first }}'
