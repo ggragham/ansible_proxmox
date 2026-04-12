@@ -59,14 +59,10 @@
         --mtu {{ (item.0.mtu | string) | quote }}
       vars:
         current_zone: '{{ item.1.stdout | from_json }}'
-        current_zone_peers: "{{ (current_zone.get('peers', '') | string).split(',') | map('trim') | reject('equalto', '') | list | sort }}"
-        desired_zone_peers: "{{ (item.0.peers | default('') | string).split(',') | map('trim') | reject('equalto', '') | list | sort }}"
-        current_zone_nodes: "{{ (current_zone.get('nodes', '') | string).split(',') | map('trim') | reject('equalto', '') | list | sort }}"
-        desired_zone_nodes: "{{ (item.0.nodes | default('') | string).split(',') | map('trim') | reject('equalto', '') | list | sort }}"
-        current_zone_ipam: "{{ current_zone.get('ipam', '') | string }}"
-        desired_zone_ipam: "{{ item.0.ipam | default('') | string }}"
-        current_zone_mtu: "{{ current_zone.get('mtu', '') | string }}"
-        desired_zone_mtu: "{{ item.0.mtu | default('') | string }}"
+        current_zone_peers: "{{ current_zone.peers.split(',') | map('trim') | reject('equalto', '') | list | sort }}"
+        desired_zone_peers: "{{ item.0.peers.split(',') | map('trim') | reject('equalto', '') | list | sort }}"
+        current_zone_nodes: "{{ current_zone.nodes.split(',') | map('trim') | reject('equalto', '') | list | sort }}"
+        desired_zone_nodes: "{{ item.0.nodes.split(',') | map('trim') | reject('equalto', '') | list | sort }}"
       loop: '{{ PVE_SDN_ZONES | zip(pve_sdn_zone_current.results) | list }}'
       loop_control:
         label: '{{ item.0.zone }}'
@@ -77,9 +73,9 @@
           or
           (current_zone_nodes != desired_zone_nodes)
           or
-          (current_zone_ipam != desired_zone_ipam)
+          (current_zone.ipam != item.0.ipam)
           or
-          (current_zone_mtu != desired_zone_mtu)
+          ((current_zone.mtu | string) != (item.0.mtu | string))
       register: pve_sdn_zone_update
       changed_when: true
       become: true
