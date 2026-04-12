@@ -1,5 +1,14 @@
 ---
 - block:
+    - name: Get Proxmox VE version
+      command: pveversion
+      register: pveversion_cmd
+      changed_when: false
+
+    - name: Extract Proxmox VE major version
+      set_fact:
+        proxmox_ve_major_version: "{{ (pveversion_cmd.stdout | regex_search('pve-manager/([0-9]+)\\.', '\\1') | first) | int }}"
+
     - name: Check if Subscription Notice patch is already applied
       command: grep -q '// Ansible patch' /usr/share/javascript/proxmox-widget-toolkit/proxmoxlib.js
       register: patch_check
@@ -20,7 +29,7 @@
             remote_src: true
           become: true
 
-        - name: Hide annoying Subscription Notice
+        - name: Hide annoying Subscription Notice for Proxmox VE <= 8
           replace:
             path: /usr/share/javascript/proxmox-widget-toolkit/proxmoxlib.js
             regexp: (function\(orig_cmd\) \{)
@@ -28,6 +37,20 @@
             backup: true
           notify: Restart pveproxy
           become: true
+          when: (proxmox_ve_major_version | int) <= 8
+
+        - name: Hide annoying Subscription Notice for Proxmox VE >= 9
+          replace:
+            path: /usr/share/javascript/proxmox-widget-toolkit/proxmoxlib.js
+            regexp: "(^\\s*)Ext\\.Msg\\.show\\(\\{\\n(\\s*)title: gettext\\('No valid subscription'\\),"
+            replace: |
+              \1// Ansible patch: pve9
+              \1void({
+              \2title: gettext('No valid subscription'),
+            backup: true
+          notify: Restart pveproxy
+          become: true
+          when: (proxmox_ve_major_version | int) >= 9
 
       when: patch_check.rc != 0
 
