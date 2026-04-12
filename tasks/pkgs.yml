@@ -64,9 +64,7 @@
         - ceph
       loop_control:
         loop_var: enterprise_repo
-      when:
-        - not pve_repo_use_deb822
-        - item.manage | bool
+      when: not pve_repo_use_deb822
       failed_when: false
       become: true
 
