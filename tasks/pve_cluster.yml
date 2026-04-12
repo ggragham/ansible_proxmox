@@ -127,6 +127,7 @@
       command: pvecm status
       register: pve_cluster_status
       changed_when: false
+      become: true
 
     - name: Show cluster status summary
       debug:
