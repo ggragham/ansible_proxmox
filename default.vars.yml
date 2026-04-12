@@ -64,13 +64,25 @@ PVE_SDN_VNETS:
     zone: vxlan01
     tag: 200
     alias: Private Network
+    subnets:
+      - subnet: 192.168.1.0/24
+        gateway: 192.168.1.1
+        snat: 0
 
   - vnet: vnet300
     zone: vxlan01
     tag: 300
     alias: Database Network
+    subnets:
+      - subnet: 172.30.0.0/16
+        gateway:
+        snat: 0
 
   - vnet: vnet400
     zone: vxlan01
     tag: 400
     alias: Management
+    subnets:
+      - subnet: 10.10.10.0/24
+        gateway:
+        snat: 0
