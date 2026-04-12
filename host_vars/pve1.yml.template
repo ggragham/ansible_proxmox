@@ -51,6 +51,7 @@ DISK_SUBVOLS:  # List of BTRFS subvolumes.
     compression: zstd:1
 
 # Samba
+SMB_SHARE_ENABLE: false  # Enables or disables Samba shares.
 SMB_WORKGROUP: WORKGROUP  # Samba workgroup name.
 SMB_USER: smbuser  # Samba username.
 SMB_PASSWORD: qwerty1234  # Samba username password.

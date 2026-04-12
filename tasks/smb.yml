@@ -98,4 +98,5 @@
         loop_var: smb_mount_point
       become: true
 
+  when: SMB_SHARE_ENABLE | default(false) | bool
   tags: smb
