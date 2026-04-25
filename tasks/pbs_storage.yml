@@ -1,0 +1,47 @@
+---
+- name: Prepare PBS Storage
+  block:
+    - name: Check if PBS filesystem storage already exists
+      command: mountpoint -q "/mnt/datastore/{{ PBS_STORAGE_NAME }}"
+      register: pbs_storage_mountpoint
+      changed_when: false
+      failed_when: false
+      become: true
+
+    - name: Check block device filesystems
+      command: lsblk -nr -o FSTYPE "/dev/{{ PBS_BLOCK_DEVICE_NAME }}"
+      register: pbs_block_device_filesystems
+      changed_when: false
+      failed_when: false
+      when: pbs_storage_mountpoint.rc != 0
+      become: true
+
+    - name: Fail if block device cannot be read
+      fail:
+        msg: Block device /dev/{{ PBS_BLOCK_DEVICE_NAME }} does not exist or cannot be read
+      when:
+        - pbs_storage_mountpoint.rc != 0
+        - pbs_block_device_filesystems.rc != 0
+      become: true
+
+    - name: Fail if block device already has filesystem
+      fail:
+        msg: |
+          Refusing to create filesystem storage on /dev/{{ PBS_BLOCK_DEVICE_NAME }}.
+          Existing filesystem detected:
+          {{ pbs_block_device_filesystems.stdout }}
+      when:
+        - pbs_storage_mountpoint.rc != 0
+        - pbs_block_device_filesystems.stdout_lines | select('match', '.+') | list | length > 0
+      become: true
+
+    - name: Create filesystem directory storage
+      command: proxmox-backup-manager disk fs create "{{ PBS_STORAGE_NAME }}" --disk "{{ PBS_BLOCK_DEVICE_NAME }}" --filesystem "{{ PBS_FILESYSTEM }}"
+      register: pbs_fs_create
+      changed_when: pbs_fs_create.rc == 0
+      when:
+        - pbs_storage_mountpoint.rc != 0
+        - pbs_block_device_filesystems.stdout_lines | select('match', '.+') | list | length == 0
+      become: true
+
+  when: PBS_STORAGE_CREATE | default(false) | bool
