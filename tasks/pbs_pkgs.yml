@@ -1,0 +1,29 @@
+---
+- name: Configure repos in deb822 format
+  deb822_repository:
+    name: '{{ item.name }}'
+    types: [deb]
+    uris: '{{ item.uris }}'
+    suites: ['{{ ansible_distribution_release }}']
+    components: '{{ item.components }}'
+    signed_by: /usr/share/keyrings/proxmox-archive-keyring.gpg
+    enabled: '{{ item.enabled }}'
+    state: present
+  loop:
+    - name: pbs-enterprise
+      uris: https://enterprise.proxmox.com/debian/pbs
+      components: [pbs-enterprise]
+      enabled: false
+      manage: true
+
+    - name: proxmox-no-subscription
+      uris: http://download.proxmox.com/debian/pbs
+      components: [pbs-no-subscription]
+      enabled: true
+      manage: true
+  become: true
+
+- name: Update apt cache
+  apt:
+    update_cache: true
+  become: true
