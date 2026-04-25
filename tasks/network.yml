@@ -21,9 +21,11 @@
               iface {{ network_interface.name }} inet static
                 address {{ network_interface.address }}
                 netmask {{ network_interface.netmask }}
+              {% if network_interface.bridge | default(false) | bool %}
                 bridge-ports none
                 bridge-stp off
                 bridge-fd 0
+              {% endif %}
               {% if network_interface.nat | default(false) | bool %}
                 post-up echo 1 > /proc/sys/net/ipv4/ip_forward
                 post-up iptables -t nat -A POSTROUTING -s '{{ (network_interface.address ~ "/" ~ network_interface.netmask) | ansible.utils.ipaddr("network/prefix") }}' -o vmbr0 -j MASQUERADE

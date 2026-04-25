@@ -74,15 +74,18 @@ PVE_NETWORK_INTERFACE:
   - name: vmbr100
     address: 172.16.0.1
     netmask: 255.255.0.0
+    bridge: true
     nat: true
     description: NAT Interface
   - name: vmbr200
     address: 192.168.1.1
     netmask: 255.255.255.0
+    bridge: false
     nat: false
     description: Private Network
   - name: vmbr300
     address: 10.0.0.1
     netmask: 255.255.255.0
+    bridge: true
     nat: false
     description: Database Network
