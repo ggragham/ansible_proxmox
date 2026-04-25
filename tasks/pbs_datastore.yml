@@ -1,0 +1,35 @@
+---
+- name: Create mountpoint
+  file:
+    path: '{{ PBS_DATASTORE_PATH }}'
+    state: directory
+    mode: '0755'
+  become: true
+
+- name: Check that datastore filesystem is mounted
+  command: mountpoint -q '{{ PBS_DATASTORE_PATH }}'
+  register: pbs_datastore_mountpoint
+  changed_when: false
+  failed_when: false
+  become: true
+
+- name: Fail if datastore filesystem is not mounted
+  fail:
+    msg: Datastore path {{ PBS_DATASTORE_PATH }} is not mounted
+  when: pbs_datastore_mountpoint.rc != 0
+
+- name: Check if PBS datastore already exists
+  command: proxmox-backup-manager datastore show '{{ PBS_DATASTORE_NAME }}'
+  register: pbs_datastore_show
+  changed_when: false
+  failed_when: false
+  become: true
+
+- name: Create PBS datastore
+  command: proxmox-backup-manager datastore create '{{ PBS_DATASTORE_NAME }}' '{{ PBS_DATASTORE_PATH }}'
+  register: pbs_datastore_create
+  changed_when: pbs_datastore_create.rc == 0
+  when:
+    - pbs_datastore_show.rc != 0
+    - pbs_datastore_mountpoint.rc == 0
+  become: true
