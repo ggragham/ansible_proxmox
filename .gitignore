@@ -56,9 +56,9 @@ assets/*
 inventory.yml
 inventory.ini
 *vars.yml
-!default.vars.yml
+!default*.vars.yml
 *playbook.yml
-!default.playbook.yml
+!default*.playbook.yml
 host_vars/*
 !host_vars/
 !host_vars/pve1.yml.template
