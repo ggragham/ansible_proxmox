@@ -1,0 +1,83 @@
+---
+- name: Configure repos
+  block:
+    - name: Check Proxmox repo format files
+      stat:
+        path: '{{ item }}'
+      loop:
+        - /etc/apt/sources.list.d/proxmox.sources
+        - /etc/apt/sources.list.d/pve-enterprise.sources
+        - /etc/apt/sources.list.d/ceph.sources
+      register: pve_repo_format_files
+
+    - name: Decide whether deb822 is used
+      set_fact:
+        pve_repo_use_deb822: "{{ (pve_repo_format_files.results | selectattr('stat.exists') | list | length) > 0 }}"
+
+    - name: Configure repos in deb822 format
+      deb822_repository:
+        name: '{{ item.name }}'
+        types: [deb]
+        uris: '{{ item.uris }}'
+        suites: ['{{ ansible_distribution_release }}']
+        components: '{{ item.components }}'
+        signed_by: /usr/share/keyrings/proxmox-archive-keyring.gpg
+        enabled: '{{ item.enabled }}'
+        state: present
+      loop:
+        - name: pve-enterprise
+          uris: https://enterprise.proxmox.com/debian/pve
+          components: [pve-enterprise]
+          enabled: false
+          manage: true
+
+        - name: ceph
+          uris: https://enterprise.proxmox.com/debian/ceph-squid
+          components: [enterprise]
+          enabled: false
+          manage: '{{ pve_manage_ceph_repo | default(true) }}'
+
+        - name: proxmox-no-subscription
+          uris: http://download.proxmox.com/debian/pve
+          components: [pve-no-subscription]
+          enabled: true
+          manage: true
+
+        - name: ceph-no-subscription
+          uris: http://download.proxmox.com/debian/ceph-squid
+          components: [no-subscription]
+          enabled: true
+          manage: '{{ pve_manage_ceph_repo | default(true) }}'
+      when:
+        - pve_repo_use_deb822
+        - item.manage | bool
+      register: deb822_repo_changes
+      become: true
+
+    - name: Disable Legacy Enterprise Repos
+      replace:
+        path: /etc/apt/sources.list.d/{{ enterprise_repo }}.list
+        regexp: ^(deb .*enterprise.*)$
+        replace: '# \1'
+      loop:
+        - pve-enterprise
+        - ceph
+      loop_control:
+        loop_var: enterprise_repo
+      when: not pve_repo_use_deb822
+      failed_when: false
+      become: true
+
+    - name: Add Legacy No-Subscription Repo
+      lineinfile:
+        path: /etc/apt/sources.list
+        line: deb http://download.proxmox.com/debian/pve {{ ansible_distribution_release }} pve-no-subscription
+        insertafter: EOF
+        state: present
+      when: not pve_repo_use_deb822
+      become: true
+
+- name: Update apt cache
+  apt:
+    update_cache: true
+  become: true

@@ -25,6 +25,10 @@
       include_tasks: '{{ tasks_path }}/network.yml'
       tags: network
 
+    - name: Repo settings
+      import_tasks: '{{ tasks_path }}/pve_pkgs.yml'
+      tags: pve_pkgs
+
     - name: PKGs config
       import_tasks: '{{ tasks_path }}/pkgs.yml'
       tags: pkgs
