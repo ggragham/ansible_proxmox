@@ -1,0 +1,99 @@
+---
+- name: Check if PBS prune job already exists
+  command: proxmox-backup-manager prune-job show '{{ PBS_PRUNE_JOB_ID }}' --output-format json
+  register: pbs_prune_job_show
+  changed_when: false
+  failed_when: false
+  become: true
+
+- name: Parse current PBS prune job config
+  set_fact:
+    pbs_prune_job_current: '{{ pbs_prune_job_show.stdout | from_json }}'
+  when: pbs_prune_job_show.rc == 0
+
+- name: Create PBS prune job
+  command: >-
+    proxmox-backup-manager prune-job create {{ PBS_PRUNE_JOB_ID | quote }}
+    --store {{ PBS_DATASTORE_NAME | quote }}
+    --schedule {{ PBS_PRUNE_JOB_SCHEDULE | quote }}
+    --comment {{ PBS_PRUNE_JOB_COMMENT | quote }}
+    --disable {{ PBS_PRUNE_JOB_DISABLE | string | lower | quote }}
+    {% if PBS_PRUNE_KEEP_LAST | int > 0 %}
+    --keep-last {{ PBS_PRUNE_KEEP_LAST }}
+    {% endif %}
+    {% if PBS_PRUNE_KEEP_HOURLY | int > 0 %}
+    --keep-hourly {{ PBS_PRUNE_KEEP_HOURLY }}
+    {% endif %}
+    {% if PBS_PRUNE_KEEP_DAILY | int > 0 %}
+    --keep-daily {{ PBS_PRUNE_KEEP_DAILY }}
+    {% endif %}
+    {% if PBS_PRUNE_KEEP_WEEKLY | int > 0 %}
+    --keep-weekly {{ PBS_PRUNE_KEEP_WEEKLY }}
+    {% endif %}
+    {% if PBS_PRUNE_KEEP_MONTHLY | int > 0 %}
+    --keep-monthly {{ PBS_PRUNE_KEEP_MONTHLY }}
+    {% endif %}
+    {% if PBS_PRUNE_KEEP_YEARLY | int > 0 %}
+    --keep-yearly {{ PBS_PRUNE_KEEP_YEARLY }}
+    {% endif %}
+    --max-depth {{ PBS_PRUNE_MAX_DEPTH }}
+  register: pbs_prune_job_create
+  changed_when: pbs_prune_job_create.rc == 0
+  when: pbs_prune_job_show.rc != 0
+  become: true
+
+- name: Update PBS prune job
+  command: >-
+    proxmox-backup-manager prune-job update {{ PBS_PRUNE_JOB_ID | quote }}
+    --store {{ PBS_DATASTORE_NAME | quote }}
+    --schedule {{ PBS_PRUNE_JOB_SCHEDULE | quote }}
+    --comment {{ PBS_PRUNE_JOB_COMMENT | quote }}
+    --disable {{ PBS_PRUNE_JOB_DISABLE | string | lower | quote }}
+    {% if PBS_PRUNE_KEEP_LAST | int > 0 %}
+    --keep-last {{ PBS_PRUNE_KEEP_LAST }}
+    {% elif pbs_prune_job_current['keep-last'] is defined %}
+    --delete keep-last
+    {% endif %}
+    {% if PBS_PRUNE_KEEP_HOURLY | int > 0 %}
+    --keep-hourly {{ PBS_PRUNE_KEEP_HOURLY }}
+    {% elif pbs_prune_job_current['keep-hourly'] is defined %}
+    --delete keep-hourly
+    {% endif %}
+    {% if PBS_PRUNE_KEEP_DAILY | int > 0 %}
+    --keep-daily {{ PBS_PRUNE_KEEP_DAILY }}
+    {% elif pbs_prune_job_current['keep-daily'] is defined %}
+    --delete keep-daily
+    {% endif %}
+    {% if PBS_PRUNE_KEEP_WEEKLY | int > 0 %}
+    --keep-weekly {{ PBS_PRUNE_KEEP_WEEKLY }}
+    {% elif pbs_prune_job_current['keep-weekly'] is defined %}
+    --delete keep-weekly
+    {% endif %}
+    {% if PBS_PRUNE_KEEP_MONTHLY | int > 0 %}
+    --keep-monthly {{ PBS_PRUNE_KEEP_MONTHLY }}
+    {% elif pbs_prune_job_current['keep-monthly'] is defined %}
+    --delete keep-monthly
+    {% endif %}
+    {% if PBS_PRUNE_KEEP_YEARLY | int > 0 %}
+    --keep-yearly {{ PBS_PRUNE_KEEP_YEARLY }}
+    {% elif pbs_prune_job_current['keep-yearly'] is defined %}
+    --delete keep-yearly
+    {% endif %}
+    --max-depth {{ PBS_PRUNE_MAX_DEPTH }}
+  register: pbs_prune_job_update
+  changed_when: pbs_prune_job_update.rc == 0
+  when:
+    - pbs_prune_job_show.rc == 0
+    - >
+      (pbs_prune_job_current.store | default('')) != PBS_DATASTORE_NAME
+      or (pbs_prune_job_current.schedule | default('')) != PBS_PRUNE_JOB_SCHEDULE
+      or (pbs_prune_job_current.comment | default('')) != PBS_PRUNE_JOB_COMMENT
+      or (pbs_prune_job_current.disable | default(false) | bool) != (PBS_PRUNE_JOB_DISABLE | bool)
+      or (pbs_prune_job_current['keep-last'] | default(0) | int) != (PBS_PRUNE_KEEP_LAST | int)
+      or (pbs_prune_job_current['keep-hourly'] | default(0) | int) != (PBS_PRUNE_KEEP_HOURLY | int)
+      or (pbs_prune_job_current['keep-daily'] | default(0) | int) != (PBS_PRUNE_KEEP_DAILY | int)
+      or (pbs_prune_job_current['keep-weekly'] | default(0) | int) != (PBS_PRUNE_KEEP_WEEKLY | int)
+      or (pbs_prune_job_current['keep-monthly'] | default(0) | int) != (PBS_PRUNE_KEEP_MONTHLY | int)
+      or (pbs_prune_job_current['keep-yearly'] | default(0) | int) != (PBS_PRUNE_KEEP_YEARLY | int)
+      or (pbs_prune_job_current['max-depth'] | default(0) | int) != (PBS_PRUNE_MAX_DEPTH | int)
+  become: true

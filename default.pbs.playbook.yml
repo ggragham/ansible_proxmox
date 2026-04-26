@@ -40,3 +40,7 @@
     - name: Connect PBS storage to PVE
       import_tasks: '{{ tasks_path }}/pbs_connect_storage.yml'
       tags: pbs_connect_storage
+
+    - name: Prune Job
+      import_tasks: '{{ tasks_path }}/pbs_prune.yml'
+      tags: pbs_prune

@@ -46,3 +46,18 @@ PVE_NODE: "{{ groups['pve'] | first }}"  # PVE node used to configure storage.
 PVE_PBS_STORAGE_ID: pbs-backup  # Storage ID created in Proxmox VE.
 PVE_PBS_USERNAME: root@pam  # PBS user used by Proxmox VE.
 PVE_PBS_PASSWORD: change_me  # PBS password used by Proxmox VE.
+
+# Prune job
+PBS_PRUNE_JOB_CREATE: true  # Enable or disable PBS prune job configuration.
+PBS_PRUNE_JOB_ID: prune-{{ PBS_DATASTORE_NAME }}  # PBS prune job ID.
+PBS_PRUNE_JOB_SCHEDULE: daily  # PBS prune job schedule.
+PBS_PRUNE_JOB_COMMENT: Prune job for {{ PBS_DATASTORE_NAME }}  # PBS prune job comment.
+PBS_PRUNE_JOB_DISABLE: false  # Enable or disable PBS prune job.
+
+PBS_PRUNE_KEEP_LAST: 7  # Number of last backups to keep.
+PBS_PRUNE_KEEP_HOURLY: 24  # Number of hourly backups to keep.
+PBS_PRUNE_KEEP_DAILY: 14  # Number of daily backups to keep.
+PBS_PRUNE_KEEP_WEEKLY: 8  # Number of weekly backups to keep.
+PBS_PRUNE_KEEP_MONTHLY: 12  # Number of monthly backups to keep.
+PBS_PRUNE_KEEP_YEARLY: 3  # Number of yearly backups to keep.
+PBS_PRUNE_MAX_DEPTH: 7  # Namespace recursion depth for prune job.
