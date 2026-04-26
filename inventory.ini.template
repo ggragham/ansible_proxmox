@@ -13,3 +13,11 @@ proxmox_slave
 ansible_port=22
 ansible_user=root
 ansible_ssh_private_key_file=~/.ssh/id_ed25519.pem
+
+[pbs]
+pbs1 ansible_host=10.10.10.250
+
+[pbs:vars]
+ansible_port=22
+ansible_user=root
+ansible_ssh_private_key_file=~/.ssh/id_ed25519.pem

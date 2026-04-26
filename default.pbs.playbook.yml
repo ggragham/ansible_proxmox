@@ -1,0 +1,42 @@
+---
+- name: Configure Peoxmox Backup Server
+  hosts: pbs
+
+  vars_files: [vars.yml]
+
+  vars:
+    assets_path: '{{ playbook_dir }}/assets'
+    files_path: '{{ playbook_dir }}/files'
+    handlers_path: '{{ playbook_dir }}/handlers'
+    tasks_path: '{{ playbook_dir }}/tasks'
+    templates_path: '{{ playbook_dir }}/templates'
+
+  roles:
+    - name: System Hardening
+      role: hardening_ansible_role
+      tags: system_hardening
+
+  tasks:
+    - name: Auth settings
+      import_tasks: '{{ tasks_path }}/auth.yml'
+      tags: auth
+
+    - name: Repo settings
+      import_tasks: '{{ tasks_path }}/pbs_pkgs.yml'
+      tags: pbs_pkgs
+
+    - name: PKGs config
+      import_tasks: '{{ tasks_path }}/pkgs.yml'
+      tags: pkgs
+
+    - name: Storage config
+      import_tasks: '{{ tasks_path }}/pbs_storage.yml'
+      tags: pbs_storage
+
+    - name: Datastore config
+      import_tasks: '{{ tasks_path }}/pbs_datastore.yml'
+      tags: pbs_datastore
+
+    - name: Connect PBS storage to PVE
+      import_tasks: '{{ tasks_path }}/pbs_connect_storage.yml'
+      tags: pbs_connect_storage
