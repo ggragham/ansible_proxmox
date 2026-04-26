@@ -1,0 +1,35 @@
+---
+- name: Check if PBS datastore exists
+  command: proxmox-backup-manager datastore show '{{ PBS_DATASTORE_NAME }}' --output-format json
+  register: pbs_datastore_show
+  changed_when: false
+  failed_when: false
+  become: true
+
+- name: Fail if PBS datastore does not exist
+  fail:
+    msg: PBS datastore {{ PBS_DATASTORE_NAME }} does not exist
+  when: pbs_datastore_show.rc != 0
+
+- name: Parse current PBS datastore config
+  set_fact:
+    pbs_datastore_current: '{{ pbs_datastore_show.stdout | from_json }}'
+  when: pbs_datastore_show.rc == 0
+
+- name: Configure PBS datastore garbage collection schedule
+  command: proxmox-backup-manager datastore update '{{ PBS_DATASTORE_NAME }}' --gc-schedule '{{ PBS_GC_SCHEDULE }}'
+  register: pbs_datastore_gc_update
+  changed_when: pbs_datastore_gc_update.rc == 0
+  when:
+    - (PBS_GC_SCHEDULE | string | length) > 0
+    - (pbs_datastore_current['gc-schedule'] | default('')) != PBS_GC_SCHEDULE
+  become: true
+
+- name: Disable PBS datastore garbage collection schedule
+  command: proxmox-backup-manager datastore update '{{ PBS_DATASTORE_NAME }}' --delete gc-schedule
+  register: pbs_datastore_gc_delete
+  changed_when: pbs_datastore_gc_delete.rc == 0
+  when:
+    - (PBS_GC_SCHEDULE | string | length) == 0
+    - pbs_datastore_current['gc-schedule'] is defined
+  become: true

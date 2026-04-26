@@ -61,3 +61,7 @@ PBS_PRUNE_KEEP_WEEKLY: 8  # Number of weekly backups to keep.
 PBS_PRUNE_KEEP_MONTHLY: 12  # Number of monthly backups to keep.
 PBS_PRUNE_KEEP_YEARLY: 3  # Number of yearly backups to keep.
 PBS_PRUNE_MAX_DEPTH: 7  # Namespace recursion depth for prune job.
+
+# Garbage collection
+PBS_GC_CONFIGURE: true  # Enable or disable PBS garbage collection schedule configuration.
+PBS_GC_SCHEDULE: sun 03:00  # PBS garbage collection schedule. Empty string disables schedule.
