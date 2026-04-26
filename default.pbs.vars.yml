@@ -65,3 +65,15 @@ PBS_PRUNE_MAX_DEPTH: 7  # Namespace recursion depth for prune job.
 # Garbage collection
 PBS_GC_CONFIGURE: true  # Enable or disable PBS garbage collection schedule configuration.
 PBS_GC_SCHEDULE: sun 03:00  # PBS garbage collection schedule. Empty string disables schedule.
+
+# Verify job
+PBS_VERIFY_JOB_CREATE: true  # Enable or disable PBS verify job configuration.
+PBS_VERIFY_JOB_ID: verify-{{ PBS_DATASTORE_NAME }}  # PBS verify job ID.
+PBS_VERIFY_JOB_SCHEDULE: mon..sat 03:00  # PBS verify job schedule.
+PBS_VERIFY_JOB_COMMENT: Verify job for {{ PBS_DATASTORE_NAME }}  # PBS verify job comment.
+
+PBS_VERIFY_IGNORE_VERIFIED: true  # Skip backups that are already verified and not outdated.
+PBS_VERIFY_OUTDATED_AFTER: 30  # Days after which verification becomes outdated.
+PBS_VERIFY_READ_THREADS: 1  # Number of read threads for verify job.
+PBS_VERIFY_THREADS: 4  # Number of verify threads for verify job.
+PBS_VERIFY_MAX_DEPTH: 7  # Namespace recursion depth for verify job.

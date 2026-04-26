@@ -1,0 +1,58 @@
+---
+- name: Check if PBS verify job already exists
+  command: proxmox-backup-manager verify-job show '{{ PBS_VERIFY_JOB_ID }}' --output-format json
+  register: pbs_verify_job_show
+  changed_when: false
+  failed_when: false
+  become: true
+
+- name: Parse current PBS verify job config
+  set_fact:
+    pbs_verify_job_current: '{{ pbs_verify_job_show.stdout | from_json }}'
+  when: pbs_verify_job_show.rc == 0
+
+- name: Create PBS verify job
+  command: >-
+    proxmox-backup-manager
+    verify-job
+    create '{{ PBS_VERIFY_JOB_ID }}'
+    --store '{{ PBS_DATASTORE_NAME }}'
+    --schedule '{{ PBS_VERIFY_JOB_SCHEDULE }}'
+    --comment '{{ PBS_VERIFY_JOB_COMMENT }}'
+    --ignore-verified '{{ PBS_VERIFY_IGNORE_VERIFIED | string | lower }}'
+    --outdated-after '{{ PBS_VERIFY_OUTDATED_AFTER | string }}'
+    --read-threads '{{ PBS_VERIFY_READ_THREADS | string }}'
+    --verify-threads '{{ PBS_VERIFY_THREADS | string }}'
+    --max-depth '{{ PBS_VERIFY_MAX_DEPTH | string }}'
+  register: pbs_verify_job_create
+  changed_when: pbs_verify_job_create.rc == 0
+  when: pbs_verify_job_show.rc != 0
+  become: true
+
+- name: Update PBS verify job
+  command: >-
+    proxmox-backup-manager
+    verify-job
+    update '{{ PBS_VERIFY_JOB_ID }}'
+    --store '{{ PBS_DATASTORE_NAME }}'
+    --schedule '{{ PBS_VERIFY_JOB_SCHEDULE }}'
+    --comment '{{ PBS_VERIFY_JOB_COMMENT }}'
+    --ignore-verified '{{ PBS_VERIFY_IGNORE_VERIFIED | string | lower }}'
+    --outdated-after '{{ PBS_VERIFY_OUTDATED_AFTER | string }}'
+    --read-threads '{{ PBS_VERIFY_READ_THREADS | string }}'
+    --verify-threads '{{ PBS_VERIFY_THREADS | string }}'
+    --max-depth '{{ PBS_VERIFY_MAX_DEPTH | string }}'
+  register: pbs_verify_job_update
+  changed_when: pbs_verify_job_update.rc == 0
+  when:
+    - pbs_verify_job_show.rc == 0
+    - >
+      (pbs_verify_job_current.store | default('')) != PBS_DATASTORE_NAME
+      or (pbs_verify_job_current.schedule | default('')) != PBS_VERIFY_JOB_SCHEDULE
+      or (pbs_verify_job_current.comment | default('')) != PBS_VERIFY_JOB_COMMENT
+      or (pbs_verify_job_current['ignore-verified'] | default(true) | bool) != (PBS_VERIFY_IGNORE_VERIFIED | bool)
+      or (pbs_verify_job_current['outdated-after'] | default(0) | int) != (PBS_VERIFY_OUTDATED_AFTER | int)
+      or (pbs_verify_job_current['read-threads'] | default(0) | int) != (PBS_VERIFY_READ_THREADS | int)
+      or (pbs_verify_job_current['verify-threads'] | default(0) | int) != (PBS_VERIFY_THREADS | int)
+      or (pbs_verify_job_current['max-depth'] | default(0) | int) != (PBS_VERIFY_MAX_DEPTH | int)
+  become: true

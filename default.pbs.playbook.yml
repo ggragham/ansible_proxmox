@@ -48,3 +48,7 @@
     - name: GC Job
       import_tasks: '{{ tasks_path }}/pbs_gc.yml'
       tags: pbs_gc
+
+    - name: Verify Job
+      import_tasks: '{{ tasks_path }}/pbs_verify.yml'
+      tags: pbs_verify
