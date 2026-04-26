@@ -1,0 +1,27 @@
+---
+- name: Get PBS fingerprint
+  shell: "proxmox-backup-manager cert info | awk -F': ' '/Fingerprint/ {print $2}'"
+  register: pbs_fingerprint_cmd
+  changed_when: false
+  delegate_to: '{{ PBS_NODE }}'
+  become: true
+
+- name: Set PBS facts
+  set_fact:
+    pbs_server: '{{ hostvars[PBS_NODE].ansible_host | default(PBS_NODE) }}'
+    pbs_fingerprint: '{{ pbs_fingerprint_cmd.stdout | trim }}'
+
+- name: Check PVE storage
+  command: pvesm status --storage {{ PBS_STORAGE_ID }}
+  register: pbs_storage_check
+  changed_when: false
+  failed_when: false
+  delegate_to: '{{ PVE_NODE }}'
+  become: true
+
+- name: Add PBS storage
+  command: pvesm add pbs {{ PBS_STORAGE_ID }} --server {{ pbs_server }} --datastore {{ PBS_DATASTORE_NAME }} --content backup --username {{ PBS_USERNAME }} --password {{ PBS_PASSWORD }} --fingerprint {{ pbs_fingerprint }}
+  when: pbs_storage_check.rc != 0
+  no_log: true
+  delegate_to: '{{ PVE_NODE }}'
+  become: true
