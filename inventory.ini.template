@@ -1,15 +1,15 @@
-[proxmox_master]
+[pve_master]
 pve1 ansible_host=10.10.10.10
 
-[proxmox_slave]
+[pve_slave]
 pve2 ansible_host=10.10.10.11
 pve3 ansible_host=10.10.10.12
 
-[proxmox:children]
+[pve:children]
 proxmox_master
 proxmox_slave
 
-[proxmox:vars]
+[pve:vars]
 ansible_port=22
 ansible_user=root
 ansible_ssh_private_key_file=~/.ssh/id_ed25519.pem
