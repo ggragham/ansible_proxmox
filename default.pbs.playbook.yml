@@ -1,5 +1,5 @@
 ---
-- name: Configure Peoxmox Backup Server
+- name: Configure Proxmox Backup Server
   hosts: pbs
 
   vars_files: [vars.yml]
