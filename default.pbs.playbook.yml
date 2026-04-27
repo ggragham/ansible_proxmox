@@ -29,6 +29,10 @@
       import_tasks: '{{ tasks_path }}/pkgs.yml'
       tags: pkgs
 
+    - name: Hide annoying Subscription Notice
+      import_tasks: '{{ tasks_path }}/sub_notice_patch.yml'
+      tags: sub_notice_patch
+
     - name: Storage config
       import_tasks: '{{ tasks_path }}/pbs_storage.yml'
       tags: pbs_storage

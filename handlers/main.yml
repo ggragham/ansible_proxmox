@@ -19,3 +19,9 @@
     state: restarted
   become: true
   tags: [sub_notice_patch, pve_hardening]
+
+- name: Restart Proxmox web proxy
+  service:
+    name: '{{ proxmox_web_proxy_service }}'
+    state: restarted
+  become: true

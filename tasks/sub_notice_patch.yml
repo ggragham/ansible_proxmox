@@ -4,10 +4,21 @@
       command: pveversion
       register: pveversion_cmd
       changed_when: false
+      failed_when: false
+      become: true
 
-    - name: Extract Proxmox VE major version
+    - name: Get Proxmox Backup Server version
+      command: proxmox-backup-manager versions
+      register: pbs_version_cmd
+      changed_when: false
+      failed_when: false
+      become: true
+
+    - name: Set Proxmox facts
       set_fact:
-        proxmox_ve_major_version: "{{ (pveversion_cmd.stdout | regex_search('pve-manager/([0-9]+)\\.', '\\1') | first) | int }}"
+        proxmox_ve_major_version: "{{ (pveversion_cmd.stdout | default('') | regex_search('pve-manager/([0-9]+)\\.', '\\1') | default(['0'], true) | first) | int }}"
+        proxmox_backup_server_major_version: "{{ (pbs_version_cmd.stdout | default('') | regex_search('proxmox-backup-server\\s+([0-9]+)\\.', '\\1') | default(['0'], true) | first) | int }}"
+        proxmox_web_proxy_service: "{{ 'proxmox-backup-proxy' if pbs_version_cmd.rc == 0 else 'pveproxy' }}"
 
     - name: Check if Subscription Notice patch is already applied
       command: grep -q '// Ansible patch' /usr/share/javascript/proxmox-widget-toolkit/proxmoxlib.js
@@ -29,29 +40,38 @@
             remote_src: true
           become: true
 
-        - name: Hide annoying Subscription Notice for Proxmox VE <= 8
+        - name: Hide annoying Subscription Notice for Proxmox VE <= 8 / Proxmox Backup Server <= 3
           replace:
             path: /usr/share/javascript/proxmox-widget-toolkit/proxmoxlib.js
             regexp: (function\(orig_cmd\) \{)
             replace: \1\n\t// Ansible patch\n\torig_cmd();\n\treturn;
             backup: true
-          notify: Restart pveproxy
+          notify: Restart Proxmox web proxy
           become: true
-          when: (proxmox_ve_major_version | int) <= 8
+          when: >
+            ((proxmox_ve_major_version | int) > 0 and (proxmox_ve_major_version | int) <= 8)
+            or
+            ((proxmox_backup_server_major_version | int) > 0 and (proxmox_backup_server_major_version | int) <= 3)
 
-        - name: Hide annoying Subscription Notice for Proxmox VE >= 9
+        - name: Hide annoying Subscription Notice for Proxmox VE >= 9 / Proxmox Backup Server >= 4
           replace:
             path: /usr/share/javascript/proxmox-widget-toolkit/proxmoxlib.js
             regexp: "(^\\s*)Ext\\.Msg\\.show\\(\\{\\n(\\s*)title: gettext\\('No valid subscription'\\),"
             replace: |
-              \1// Ansible patch: pve9
+              \1// Ansible patch: proxmox
               \1void({
               \2title: gettext('No valid subscription'),
             backup: true
-          notify: Restart pveproxy
+          notify: Restart Proxmox web proxy
           become: true
-          when: (proxmox_ve_major_version | int) >= 9
+          when: >
+            (proxmox_ve_major_version | int) >= 9
+            or
+            (proxmox_backup_server_major_version | int) >= 4
 
-      when: patch_check.rc != 0
-
-  tags: sub_notice_patch
+      when:
+        - patch_check.rc != 0
+        - >-
+          (proxmox_ve_major_version | int) > 0
+          or
+          (proxmox_backup_server_major_version | int) > 0

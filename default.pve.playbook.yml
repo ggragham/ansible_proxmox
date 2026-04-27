@@ -46,7 +46,7 @@
       tags: smb
 
     - name: Hide annoying Subscription Notice
-      include_tasks: '{{ tasks_path }}/sub_notice_patch.yml'
+      import_tasks: '{{ tasks_path }}/sub_notice_patch.yml'
       tags: sub_notice_patch
 
     - name: Proxmox Hardening
