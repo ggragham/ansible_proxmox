@@ -1,7 +1,0 @@
----
-- name: Restart Samba
-  service:
-    name: smbd
-    state: restarted
-  become: true
-  tags: smb

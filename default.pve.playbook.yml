@@ -67,14 +67,4 @@
       tags: sdn
 
   handlers:
-    - name: Restart networking
-      include_tasks: '{{ handlers_path }}/network.yml'
-      tags: network
-
-    - name: Restart Samba
-      include_tasks: '{{ handlers_path }}/smb.yml'
-      tags: smb
-
-    - name: Restart pveproxy
-      include_tasks: '{{ handlers_path }}/pveproxy.yml'
-      tags: [sub_notice_patch, pve_hardening]
+    - import_tasks: '{{ handlers_path }}/main.yml'

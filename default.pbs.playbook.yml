@@ -52,3 +52,6 @@
     - name: Verify Job
       import_tasks: '{{ tasks_path }}/pbs_verify.yml'
       tags: pbs_verify
+
+  handlers:
+    - import_tasks: '{{ handlers_path }}/main.yml'
